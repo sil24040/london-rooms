@@ -1,5 +1,22 @@
 {
-  "users": [],
+  "users": [
+    {
+      "_id": "8vy6tczzd8mqbewqz7",
+      "name": "Tester",
+      "email": "tenant@test.com",
+      "password": "$2a$10$xpD2Ba.bdGe9csGhLjyCduUwBDbKaomLymgm9dByrzm2XuT6Qq32K",
+      "role": "tenant",
+      "rentalRoomId": "r1"
+    },
+    {
+      "_id": "7ogueziip7mqbez67h",
+      "name": "Landlord",
+      "email": "landlord@test.com",
+      "password": "$2a$10$UwdMwPjrzaZJ8znViFdvtu4sC.MjmgzStpqR7vpns5TUD278RSKDu",
+      "role": "landlord",
+      "rentalRoomId": null
+    }
+  ],
   "rooms": [
     {
       "_id": "r1",
@@ -14,7 +31,8 @@
       "landlordId": "demo",
       "landlordName": "Demo Landlord",
       "savedBy": [],
-      "createdAt": 1781283403861
+      "createdAt": 1781283403861,
+      "image": null
     },
     {
       "_id": "r2",
@@ -29,7 +47,8 @@
       "landlordId": "demo",
       "landlordName": "Demo Landlord",
       "savedBy": [],
-      "createdAt": 1781283402861
+      "createdAt": 1781283402861,
+      "image": null
     },
     {
       "_id": "r3",
@@ -44,7 +63,8 @@
       "landlordId": "demo",
       "landlordName": "Demo Landlord",
       "savedBy": [],
-      "createdAt": 1781283401861
+      "createdAt": 1781283401861,
+      "image": null
     },
     {
       "_id": "r4",
@@ -59,7 +79,8 @@
       "landlordId": "demo",
       "landlordName": "Demo Landlord",
       "savedBy": [],
-      "createdAt": 1781283400861
+      "createdAt": 1781283400861,
+      "image": null
     },
     {
       "_id": "r5",
@@ -74,7 +95,8 @@
       "landlordId": "demo",
       "landlordName": "Demo Landlord",
       "savedBy": [],
-      "createdAt": 1781283399861
+      "createdAt": 1781283399861,
+      "image": null
     },
     {
       "_id": "r6",
@@ -89,7 +111,8 @@
       "landlordId": "demo",
       "landlordName": "Demo Landlord",
       "savedBy": [],
-      "createdAt": 1781283398861
+      "createdAt": 1781283398861,
+      "image": null
     },
     {
       "_id": "r7",
@@ -104,7 +127,8 @@
       "landlordId": "demo",
       "landlordName": "Demo Landlord",
       "savedBy": [],
-      "createdAt": 1781283397861
+      "createdAt": 1781283397861,
+      "image": null
     },
     {
       "_id": "r8",
@@ -119,8 +143,20 @@
       "landlordId": "demo",
       "landlordName": "Demo Landlord",
       "savedBy": [],
-      "createdAt": 1781283396861
+      "createdAt": 1781283396861,
+      "image": null
     }
   ],
-  "enquiries": []
+  "enquiries": [],
+  "payments": [
+    {
+      "_id": "m961g75fz1mqbfdgdi",
+      "tenantId": "8vy6tczzd8mqbewqz7",
+      "roomId": "r1",
+      "month": "2026-01",
+      "amount": 750,
+      "cardLast4": "4242",
+      "paidAt": 1781298900774
+    }
+  ]
 }

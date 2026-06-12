@@ -41,12 +41,15 @@ function readDB() {
         { _id: 'r8', title: 'Double room near Brixton tube', description: 'Bright double in a well-kept Victorian terrace. Shared with 2 friendly professionals and a lovely garden.', price: 760, area: 'Brixton, SW2', address: 'Railton Road', type: 'Double', billsIncluded: true, availableNow: true, landlordId: 'demo', landlordName: 'Demo Landlord', savedBy: [], lat: 51.4543, lng: -0.1153, image: null, createdAt: Date.now() - 7000 },
       ],
       enquiries: [],
+      payments: [],
     };
     fs.writeFileSync(DB_FILE, JSON.stringify(seed, null, 2));
   }
   const db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
   db.rooms.forEach(r => { if (r.image === undefined) r.image = null; });
   db.enquiries.forEach(e => { if (e.reply === undefined) e.reply = null; });
+  if (!db.payments) db.payments = [];
+  db.users.forEach(u => { if (u.rentalRoomId === undefined) u.rentalRoomId = null; });
   return db;
 }
 
@@ -380,6 +383,86 @@ app.use((err, req, res, next) => {
     return res.status(400).json({ error: err.message });
   }
   next(err);
+});
+
+
+// ── RENTAL / PAYMENTS ──
+app.post('/api/rental/set', authRequired, (req, res) => {
+  if (req.user.role !== 'tenant')
+    return res.status(403).json({ error: 'Only tenants can set a rental' });
+
+  const { roomId } = req.body;
+  const db = readDB();
+  const u = db.users.find(x => x._id === req.user.userId);
+  if (!u) return res.status(404).json({ error: 'User not found' });
+
+  if (roomId) {
+    const room = db.rooms.find(r => r._id === roomId);
+    if (!room) return res.status(404).json({ error: 'Room not found' });
+  }
+  u.rentalRoomId = roomId || null;
+  writeDB(db);
+  res.json({ rentalRoomId: u.rentalRoomId });
+});
+
+app.get('/api/rental/mine', authRequired, (req, res) => {
+  if (req.user.role !== 'tenant')
+    return res.status(403).json({ error: 'Only tenants have rentals' });
+
+  const db = readDB();
+  const u = db.users.find(x => x._id === req.user.userId);
+  if (!u || !u.rentalRoomId) return res.json({ room: null, payments: [] });
+
+  const room = db.rooms.find(r => r._id === u.rentalRoomId);
+  if (!room) return res.json({ room: null, payments: [] });
+
+  const payments = db.payments
+    .filter(p => p.tenantId === req.user.userId && p.roomId === room._id)
+    .sort((a, b) => a.month.localeCompare(b.month));
+
+  res.json({ room, payments });
+});
+
+app.post('/api/rental/pay', authRequired, (req, res) => {
+  if (req.user.role !== 'tenant')
+    return res.status(403).json({ error: 'Only tenants can pay rent' });
+
+  const { month, cardNumber, cardName, expiry, cvc } = req.body;
+  if (!month || !/^\d{4}-\d{2}$/.test(month))
+    return res.status(400).json({ error: 'Invalid month' });
+
+  if (!cardName || !cardName.trim())
+    return res.status(400).json({ error: 'Cardholder name is required' });
+  if (!cardNumber || !/^\d{12,19}$/.test(cardNumber.replace(/\s/g,'')))
+    return res.status(400).json({ error: 'Enter a valid card number' });
+  if (!expiry || !/^\d{2}\/\d{2}$/.test(expiry))
+    return res.status(400).json({ error: 'Expiry must be MM/YY' });
+  if (!cvc || !/^\d{3,4}$/.test(cvc))
+    return res.status(400).json({ error: 'Enter a valid CVC' });
+
+  const db = readDB();
+  const u = db.users.find(x => x._id === req.user.userId);
+  if (!u || !u.rentalRoomId) return res.status(400).json({ error: 'No rental set' });
+
+  const room = db.rooms.find(r => r._id === u.rentalRoomId);
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+
+  const existing = db.payments.find(p => p.tenantId === u._id && p.roomId === room._id && p.month === month);
+  if (existing) return res.status(409).json({ error: 'This month is already marked as paid' });
+
+  const last4 = cardNumber.replace(/\s/g,'').slice(-4);
+  const payment = {
+    _id: uid(),
+    tenantId: u._id,
+    roomId: room._id,
+    month,
+    amount: room.price,
+    cardLast4: last4,
+    paidAt: Date.now(),
+  };
+  db.payments.push(payment);
+  writeDB(db);
+  res.status(201).json(payment);
 });
 
 app.listen(PORT, () => {

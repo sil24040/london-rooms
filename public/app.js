@@ -11,6 +11,8 @@ let totalPages = 1;
 let compareIds = new Set();
 let editingRoomId = null;
 let replyEnquiryId = null;
+let myRentalRoomId = null;
+let rentalPayments = [];
 
 async function api(method, path, body, isForm) {
   const opts = { method, headers: {} };
@@ -355,6 +357,12 @@ async function showDetail(id) {
   showPage('detail');
   document.getElementById('detail-content').innerHTML = '<div class="loading-wrap"><span class="spinner"></span></div>';
   detailMap = null;
+  if (user && user.role === 'tenant') {
+    try {
+      const rental = await api('GET','/rental/mine');
+      myRentalRoomId = rental.room ? rental.room._id : null;
+    } catch { myRentalRoomId = null; }
+  }
   try {
     const r = await api('GET','/rooms/'+id);
     const img = r.image ? `<img src="${r.image}" alt="${escapeHtml(r.title)}" style="width:100%;max-height:320px;object-fit:cover;border-radius:12px;margin-bottom:1rem">` : '';
@@ -370,7 +378,8 @@ async function showDetail(id) {
         <h3>Contact ${escapeHtml(r.landlordName)}</h3>
         ${!user ? `<p style="margin:8px 0;color:#666">Sign in to send an enquiry</p><button class="btn btn-primary" style="width:100%" onclick="showPage('login')">Sign in</button>`
         : user.role==='landlord' ? `<p style="margin:8px 0;color:#666">You're viewing this as a landlord.</p>`
-        : `<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openEnquiry('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Send enquiry</button>`}
+        : `<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openEnquiry('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Send enquiry</button>
+           <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="setMyRental('${r._id}')">${myRentalRoomId===r._id ? '✓ This is my room' : 'Mark as my room'}</button>`}
       </div>`;
 
     if (r.lat && r.lng) {
@@ -384,6 +393,16 @@ async function showDetail(id) {
       }, 50);
     }
   } catch(e) { document.getElementById('detail-content').innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
+}
+
+
+async function setMyRental(roomId) {
+  try {
+    const newId = myRentalRoomId === roomId ? null : roomId;
+    await api('POST','/rental/set',{roomId:newId});
+    myRentalRoomId = newId;
+    showDetail(roomId);
+  } catch(e) { alert(e.message); }
 }
 
 // ── SAVED ──
@@ -411,6 +430,7 @@ async function loadDashboard() {
     document.getElementById('tenant-dash').style.display='';
     document.getElementById('landlord-dash').style.display='none';
     loadTenantEnquiries();
+    loadMyRental();
   }
 }
 
@@ -652,3 +672,117 @@ document.getElementById('reply-modal').addEventListener('click', e => { if(e.tar
 
 updateNav();
 loadRooms();
+
+// ── MY RENTAL / PAYMENTS ──
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+async function loadMyRental() {
+  const el = document.getElementById('my-rental-section');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-wrap"><span class="spinner"></span></div>';
+  try {
+    const data = await api('GET','/rental/mine');
+    if (!data.room) {
+      el.innerHTML = '<div class="empty"><span class="icon">🔑</span><p style="font-weight:600">No rental set yet</p><p style="font-size:13px;margin-top:4px">Visit a room you\'re renting and tap "Mark as my room"</p></div>';
+      return;
+    }
+    myRentalRoomId = data.room._id;
+    rentalPayments = data.payments;
+    const year = new Date().getFullYear();
+    const paidMonths = new Set(rentalPayments.map(p => p.month));
+
+    let grid = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin:12px 0">';
+    for (let m = 0; m < 12; m++) {
+      const monthStr = `${year}-${String(m+1).padStart(2,'0')}`;
+      const paid = paidMonths.has(monthStr);
+      grid += `<button class="btn ${paid?'btn-primary':'btn-outline'} btn-sm" style="flex-direction:column;height:auto;padding:10px 6px" onclick="${paid?'':`openPayRent('${monthStr}','${MONTHS[m]} ${year}')`}">
+        <span>${MONTHS[m]}</span>
+        <span style="font-size:11px">${paid ? '✓ Paid' : 'Unpaid'}</span>
+      </button>`;
+    }
+    grid += '</div>';
+
+    const history = rentalPayments.length
+      ? '<div style="margin-top:1rem"><strong style="font-size:14px">Payment history</strong>' +
+        rentalPayments.slice().reverse().map(p => `
+          <div class="card" style="margin-top:8px;padding:10px">
+            <div class="row">
+              <div>
+                <strong>${MONTHS[parseInt(p.month.split('-')[1])-1]} ${p.month.split('-')[0]}</strong>
+                <div class="meta">Paid £${p.amount} · card ending ${p.cardLast4}</div>
+              </div>
+              <span class="meta">${new Date(p.paidAt).toLocaleDateString('en-GB')}</span>
+            </div>
+          </div>`).join('') + '</div>'
+      : '';
+
+    el.innerHTML = `
+      <div class="card">
+        <div class="row">
+          <div>
+            <strong>${escapeHtml(data.room.title)}</strong>
+            <div class="meta">${escapeHtml(data.room.area)} · £${data.room.price}/mo</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="showDetail('${data.room._id}')">View room</button>
+        </div>
+        <p style="font-size:13px;color:#666;margin-top:10px">${year} rent tracker — tap an unpaid month to pay</p>
+        ${grid}
+        ${history}
+      </div>`;
+  } catch(e) { el.innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
+}
+
+let payingMonth = null;
+function openPayRent(monthStr, label) {
+  payingMonth = monthStr;
+  document.getElementById('pay-month-label').textContent = label;
+  document.getElementById('pay-error').style.display='none';
+  ['pay-card-name','pay-card-number','pay-expiry','pay-cvc'].forEach(id => document.getElementById(id).value='');
+  clearFieldErrors(['pay-name-err','pay-number-err','pay-expiry-err','pay-cvc-err']);
+  document.getElementById('pay-success').style.display='none';
+  document.getElementById('pay-form-wrap').style.display='';
+  document.getElementById('pay-btn').style.display='';
+  document.getElementById('pay-modal').classList.remove('hidden');
+}
+function closePayRent(){
+  document.getElementById('pay-modal').classList.add('hidden');
+  loadMyRental();
+}
+
+async function doPayRent() {
+  const cardName = document.getElementById('pay-card-name').value.trim();
+  const cardNumber = document.getElementById('pay-card-number').value.replace(/\s/g,'');
+  const expiry = document.getElementById('pay-expiry').value.trim();
+  const cvc = document.getElementById('pay-cvc').value.trim();
+  document.getElementById('pay-error').style.display='none';
+  clearFieldErrors(['pay-name-err','pay-number-err','pay-expiry-err','pay-cvc-err']);
+
+  let valid = true;
+  if (!cardName) { setFieldError('pay-name-err','Cardholder name is required'); valid=false; }
+  if (!/^\d{12,19}$/.test(cardNumber)) { setFieldError('pay-number-err','Enter a valid card number (12-19 digits)'); valid=false; }
+  if (!/^\d{2}\/\d{2}$/.test(expiry)) { setFieldError('pay-expiry-err','Format MM/YY'); valid=false; }
+  if (!/^\d{3,4}$/.test(cvc)) { setFieldError('pay-cvc-err','3-4 digits'); valid=false; }
+  if (!valid) return;
+
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = true; btn.textContent = 'Processing...';
+  try {
+    await api('POST','/rental/pay',{month:payingMonth, cardName, cardNumber, expiry, cvc});
+    document.getElementById('pay-success').style.display='';
+    document.getElementById('pay-form-wrap').style.display='none';
+    document.getElementById('pay-btn').style.display='none';
+  } catch(e) {
+    document.getElementById('pay-error').textContent = e.message;
+    document.getElementById('pay-error').style.display='';
+  } finally { btn.disabled=false; btn.textContent='Pay now'; }
+}
+
+function formatCardNumber(input) {
+  let v = input.value.replace(/\D/g,'').slice(0,19);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+function formatExpiry(input) {
+  let v = input.value.replace(/\D/g,'').slice(0,4);
+  if (v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
+  input.value = v;
+}

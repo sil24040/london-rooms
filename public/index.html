@@ -203,6 +203,8 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     <h1 id="dash-title">Dashboard</h1>
     <p id="dash-sub" style="color:#666;font-size:14px;margin-bottom:1rem"></p>
     <div id="tenant-dash" style="margin-top:0.5rem">
+      <h2 style="font-size:16px;margin-bottom:8px">My rental</h2>
+      <div id="my-rental-section" style="margin-bottom:1.5rem"></div>
       <h2 style="font-size:16px;margin-bottom:8px">My enquiries</h2>
       <div id="tenant-enquiries"></div>
     </div>
@@ -382,6 +384,43 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     </div>
     <button class="btn btn-primary" style="width:100%" id="reply-btn" onclick="doReply()">Send reply</button>
     <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="closeReply()">Close</button>
+  </div>
+</div>
+
+
+<div class="modal-bg hidden" id="pay-modal">
+  <div class="modal">
+    <h2 style="margin-bottom:0.25rem">Pay rent</h2>
+    <p id="pay-month-label" style="font-size:13px;color:#666;margin-bottom:10px"></p>
+    <div id="pay-success" class="alert alert-success" style="display:none">✓ Payment successful! Receipt added to your history.</div>
+    <div id="pay-error" class="alert alert-error" style="display:none"></div>
+    <div id="pay-form-wrap">
+      <div class="field">
+        <label for="pay-card-name">Cardholder name</label>
+        <input id="pay-card-name" class="input" placeholder="J Smith">
+        <div class="field-error" id="pay-name-err" style="display:none"></div>
+      </div>
+      <div class="field">
+        <label for="pay-card-number">Card number</label>
+        <input id="pay-card-number" class="input" placeholder="4242 4242 4242 4242" oninput="formatCardNumber(this)" inputmode="numeric">
+        <div class="field-error" id="pay-number-err" style="display:none"></div>
+      </div>
+      <div class="row">
+        <div class="field" style="flex:1">
+          <label for="pay-expiry">Expiry</label>
+          <input id="pay-expiry" class="input" placeholder="MM/YY" oninput="formatExpiry(this)" inputmode="numeric">
+          <div class="field-error" id="pay-expiry-err" style="display:none"></div>
+        </div>
+        <div class="field" style="flex:1">
+          <label for="pay-cvc">CVC</label>
+          <input id="pay-cvc" class="input" placeholder="123" maxlength="4" inputmode="numeric">
+          <div class="field-error" id="pay-cvc-err" style="display:none"></div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:#999;margin-bottom:10px">This is a demo — no real payment is processed.</p>
+    </div>
+    <button class="btn btn-primary" style="width:100%" id="pay-btn" onclick="doPayRent()">Pay now</button>
+    <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="closePayRent()">Close</button>
   </div>
 </div>
 
