@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LondonRooms</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,sans-serif;background:#f5f5f3;color:#1a1a1a}
+nav{background:#fff;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;height:56px;padding:0 1rem;gap:1rem;position:sticky;top:0;z-index:50}
+.logo{font-weight:700;color:#185FA5;font-size:18px;cursor:pointer}
+.logo span{color:#1a1a1a}
+.navlinks{display:flex;gap:1rem;flex:1}
+.navlinks button{background:none;border:none;font-size:14px;color:#666;cursor:pointer;padding:4px 0}
+.navlinks button.active{color:#1a1a1a;font-weight:600}
+.navright{display:flex;gap:8px;align-items:center;margin-left:auto}
+.hamburger{display:none;background:none;border:none;font-size:22px;cursor:pointer;padding:4px}
+.btn{padding:8px 16px;border-radius:8px;font-size:14px;border:none;cursor:pointer;font-weight:500}
+.btn-primary{background:#185FA5;color:#fff}
+.btn-outline{background:transparent;border:1px solid #ccc}
+.btn-sm{padding:5px 12px;font-size:13px}
+.btn-danger{background:#c0392b;color:#fff}
+.input{width:100%;padding:9px 12px;border:1px solid #ccc;border-radius:8px;font-size:14px}
+.input.err{border-color:#c0392b}
+.field{margin-bottom:12px}
+.field-error{font-size:12px;color:#c0392b;margin-top:3px}
+label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
+.alert{padding:10px;border-radius:8px;font-size:14px;margin-bottom:10px}
+.alert-error{background:#fdecea;color:#c0392b}
+.alert-success{background:#eaf3de;color:#3B6D11}
+.page{display:none}
+.page.active{display:block}
+.hero{background:#0C447C;padding:2rem 1rem;text-align:center}
+.hero h1{color:#fff;font-size:24px;margin-bottom:6px}
+.hero p{color:#B5D4F4;font-size:14px;margin-bottom:1rem}
+.search{background:#fff;border-radius:10px;padding:8px;display:flex;gap:8px;max-width:500px;margin:0 auto}
+.search input{flex:1;border:none;outline:none;padding:6px;min-width:0}
+.filters{background:#fff;border-bottom:1px solid #e0e0e0;padding:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filters select{padding:6px;border:1px solid #ccc;border-radius:6px;font-size:13px}
+.filters label{font-size:13px;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.view-toggle{display:flex;gap:4px;background:#f0f0f0;border-radius:8px;padding:3px}
+.view-toggle button{border:none;background:none;padding:5px 12px;border-radius:6px;font-size:13px;cursor:pointer;color:#666}
+.view-toggle button.active{background:#fff;color:#1a1a1a;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.container{max-width:1000px;margin:0 auto;padding:1rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:14px;position:relative}
+.card h3{font-size:15px;margin-bottom:4px}
+.card .price{font-size:18px;font-weight:700}
+.card .area{font-size:13px;color:#666;margin-bottom:6px}
+.card .desc{font-size:12px;color:#666;margin-bottom:10px}
+.card .meta{font-size:12px;color:#666;margin-bottom:8px}
+.card-img{width:100%;height:140px;object-fit:cover;border-radius:8px;margin-bottom:8px;background:#eee}
+.card-img-ph{width:100%;height:140px;border-radius:8px;margin-bottom:8px;background:#eee;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:30px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:200;padding:1rem}
+.modal-bg.hidden{display:none}
+.modal{background:#fff;border-radius:12px;padding:1.5rem;max-width:440px;width:100%;max-height:85vh;overflow:auto}
+.authcard{max-width:380px;margin:3rem auto;background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:1.5rem}
+.authcard h1{font-size:20px;margin-bottom:1rem}
+.empty{text-align:center;padding:2.5rem 1rem;color:#666}
+.empty .icon{font-size:36px;margin-bottom:10px;display:block}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid #ccc;border-top-color:#185FA5;border-radius:50%;animation:spin .7s linear infinite}
+.loading-wrap{display:flex;justify-content:center;padding:2.5rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.role-row{display:flex;gap:10px}
+.role-opt{flex:1;border:1px solid #ccc;border-radius:8px;padding:9px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-size:14px}
+.role-opt input{accent-color:#185FA5}
+.badge{font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600}
+.badge-avail{background:#eaf3de;color:#3B6D11}
+.badge-replied{background:#E6F1FB;color:#185FA5}
+#browse-map, #detail-map{height:380px;border-radius:12px;width:100%}
+.leaflet-popup-content{font-size:13px}
+.leaflet-popup-content b{font-size:14px}
+.popup-view-btn{display:inline-block;margin-top:6px;background:#185FA5;color:#fff;padding:4px 10px;border-radius:6px;font-size:12px;text-decoration:none;border:none;cursor:pointer}
+.compare-check{position:absolute;top:10px;right:10px;background:#fff;border-radius:6px;padding:4px 8px;font-size:11px;display:flex;align-items:center;gap:4px;border:1px solid #ddd}
+.compare-check input{accent-color:#185FA5}
+.compare-bar{position:sticky;bottom:0;background:#0C447C;color:#fff;padding:10px 1rem;display:none;align-items:center;gap:10px;flex-wrap:wrap;z-index:40}
+.compare-bar.show{display:flex}
+.compare-bar .btn-outline{border-color:#fff;color:#fff}
+.compare-table{width:100%;border-collapse:collapse;font-size:13px}
+.compare-table th, .compare-table td{border:1px solid #e0e0e0;padding:8px;text-align:left;vertical-align:top}
+.compare-table th{background:#f5f5f3;font-weight:600}
+.tabs{display:flex;gap:8px;border-bottom:1px solid #e0e0e0;margin-bottom:1rem}
+.tabs button{background:none;border:none;padding:8px 4px;font-size:14px;color:#666;cursor:pointer;border-bottom:2px solid transparent}
+.tabs button.active{color:#185FA5;border-bottom-color:#185FA5;font-weight:600}
+.img-preview{width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin-bottom:8px;display:none}
+.pagination{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:1.5rem;font-size:14px}
+
+@media (max-width:700px) {
+  .navlinks{display:none}
+  .navlinks.open{display:flex;position:absolute;top:56px;left:0;right:0;background:#fff;flex-direction:column;padding:8px 1rem;border-bottom:1px solid #e0e0e0;gap:0}
+  .navlinks.open button{padding:10px 0;text-align:left;border-bottom:1px solid #f0f0f0;width:100%}
+  .hamburger{display:block}
+  .navright .btn{padding:6px 10px;font-size:12px}
+  .hero h1{font-size:20px}
+  .filters{gap:6px}
+  .filters select, .filters label{font-size:12px}
+  #browse-map, #detail-map{height:280px}
+  .compare-table{font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="showPage('browse')">London<span>Rooms</span></div>
+  <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">☰</button>
+  <div class="navlinks" id="navlinks">
+    <button onclick="showPage('browse')" id="nav-browse" class="active">Browse</button>
+    <button onclick="showPage('saved')" id="nav-saved" style="display:none">Saved</button>
+    <button onclick="showPage('dashboard')" id="nav-dash" style="display:none">Dashboard</button>
+    <button onclick="showPage('profile')" id="nav-profile" style="display:none">Profile</button>
+  </div>
+  <div class="navright">
+    <span id="nav-user" style="font-size:13px;color:#666"></span>
+    <button class="btn btn-outline btn-sm" id="btn-logout" style="display:none" onclick="logout()">Sign out</button>
+    <button class="btn btn-outline btn-sm" id="btn-login" onclick="showPage('login')">Sign in</button>
+    <button class="btn btn-primary btn-sm" id="btn-register" onclick="showPage('register')">Sign up</button>
+  </div>
+</nav>
+
+<div id="page-browse" class="page active">
+  <div class="hero">
+    <h1>Find a room to rent in London</h1>
+    <p>Rooms listed directly by landlords — no agency fees</p>
+    <div class="search">
+      <input id="search-input" placeholder="Area or street..." oninput="onFilterChange()" aria-label="Search rooms" />
+      <button class="btn btn-primary btn-sm" onclick="onFilterChange()">Search</button>
+    </div>
+  </div>
+  <div class="filters">
+    <select id="f-price" onchange="onFilterChange()" aria-label="Maximum price">
+      <option value="">Any price</option>
+      <option value="600">Up to £600</option>
+      <option value="800">Up to £800</option>
+      <option value="1000">Up to £1000</option>
+    </select>
+    <select id="f-type" onchange="onFilterChange()" aria-label="Room type">
+      <option value="">Any type</option>
+      <option>Double</option><option>Single</option><option>En-suite</option><option>Studio</option>
+    </select>
+    <label><input type="checkbox" id="f-bills" onchange="onFilterChange()"> Bills incl.</label>
+    <label><input type="checkbox" id="f-avail" onchange="onFilterChange()"> Available now</label>
+    <select id="f-sort" onchange="onFilterChange()" aria-label="Sort by">
+      <option value="newest">Newest first</option>
+      <option value="oldest">Oldest first</option>
+      <option value="price_asc">Price: low to high</option>
+      <option value="price_desc">Price: high to low</option>
+    </select>
+    <button class="btn btn-outline btn-sm" onclick="clearFilters()">Clear</button>
+    <div class="view-toggle">
+      <button id="view-list-btn" class="active" onclick="setView('list')">☰ List</button>
+      <button id="view-map-btn" onclick="setView('map')">🗺 Map</button>
+    </div>
+    <span id="result-count" style="margin-left:auto;font-size:13px;color:#666"></span>
+  </div>
+  <div class="container">
+    <div id="rooms-loading" class="loading-wrap"><span class="spinner"></span></div>
+    <div id="rooms-grid" class="grid" style="display:none"></div>
+    <div id="rooms-map-wrap" style="display:none">
+      <div id="browse-map"></div>
+    </div>
+    <div id="pagination" class="pagination" style="display:none"></div>
+    <div id="rooms-empty" class="empty" style="display:none">
+      <span class="icon">🏠</span>
+      <p style="font-weight:600;margin-bottom:4px">No rooms found</p>
+      <p style="font-size:13px;margin-bottom:12px">Try adjusting your search or filters</p>
+      <button class="btn btn-outline btn-sm" onclick="clearFilters()">Clear filters</button>
+    </div>
+  </div>
+  <div class="compare-bar" id="compare-bar">
+    <span id="compare-count">0 selected</span>
+    <button class="btn btn-primary btn-sm" onclick="showCompare()">Compare</button>
+    <button class="btn btn-outline btn-sm" onclick="clearCompare()">Clear</button>
+  </div>
+</div>
+
+<div id="page-detail" class="page">
+  <div class="container">
+    <button class="btn btn-outline btn-sm" onclick="showPage('browse')">← Back</button>
+    <div id="detail-content" style="margin-top:1rem"></div>
+  </div>
+</div>
+
+<div id="page-compare" class="page">
+  <div class="container">
+    <button class="btn btn-outline btn-sm" onclick="showPage('browse')">← Back</button>
+    <h1 style="margin:1rem 0">Compare rooms</h1>
+    <div id="compare-content" style="overflow-x:auto"></div>
+  </div>
+</div>
+
+<div id="page-saved" class="page">
+  <div class="container">
+    <h1>Saved rooms</h1>
+    <div id="saved-list" style="margin-top:1rem"></div>
+  </div>
+</div>
+
+<div id="page-dashboard" class="page">
+  <div class="container">
+    <h1 id="dash-title">Dashboard</h1>
+    <p id="dash-sub" style="color:#666;font-size:14px;margin-bottom:1rem"></p>
+    <div id="tenant-dash" style="margin-top:0.5rem">
+      <h2 style="font-size:16px;margin-bottom:8px">My enquiries</h2>
+      <div id="tenant-enquiries"></div>
+    </div>
+    <div id="landlord-dash" style="display:none;margin-top:0.5rem">
+      <div class="tabs">
+        <button class="active" id="tab-listings" onclick="switchLandlordTab('listings')">My listings</button>
+        <button id="tab-enquiries" onclick="switchLandlordTab('enquiries')">Received enquiries</button>
+      </div>
+      <div id="landlord-listings-tab">
+        <div class="row" style="margin-bottom:10px">
+          <h2 style="font-size:16px">My listings</h2>
+          <button class="btn btn-primary btn-sm" onclick="openAddRoom()">+ Add room</button>
+        </div>
+        <div id="landlord-rooms"></div>
+      </div>
+      <div id="landlord-enquiries-tab" style="display:none">
+        <div id="landlord-enquiries"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="page-profile" class="page">
+  <div class="authcard">
+    <h1>My profile</h1>
+    <div id="profile-error" class="alert alert-error" style="display:none"></div>
+    <div id="profile-success" class="alert alert-success" style="display:none">✓ Profile updated</div>
+    <div class="field">
+      <label for="profile-name">Full name</label>
+      <input id="profile-name" class="input">
+      <div class="field-error" id="profile-name-err" style="display:none"></div>
+    </div>
+    <div class="field">
+      <label for="profile-email">Email</label>
+      <input id="profile-email" class="input" type="email">
+      <div class="field-error" id="profile-email-err" style="display:none"></div>
+    </div>
+    <div class="field">
+      <label for="profile-role">Account type</label>
+      <input id="profile-role" class="input" disabled>
+    </div>
+    <hr style="margin:1rem 0;border:none;border-top:1px solid #eee">
+    <p style="font-size:13px;color:#666;margin-bottom:10px">Change password (optional)</p>
+    <div class="field">
+      <label for="profile-current-pw">Current password</label>
+      <input id="profile-current-pw" class="input" type="password">
+    </div>
+    <div class="field">
+      <label for="profile-new-pw">New password</label>
+      <input id="profile-new-pw" class="input" type="password" placeholder="At least 8 characters">
+      <div class="field-error" id="profile-pw-err" style="display:none"></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%" id="profile-btn" onclick="doUpdateProfile()">Save changes</button>
+  </div>
+</div>
+
+<div id="page-login" class="page">
+  <div class="authcard">
+    <h1>Sign in</h1>
+    <div id="login-error" class="alert alert-error" style="display:none"></div>
+    <div class="field">
+      <label for="login-email">Email</label>
+      <input id="login-email" class="input" type="email" autocomplete="email">
+      <div class="field-error" id="login-email-err" style="display:none"></div>
+    </div>
+    <div class="field">
+      <label for="login-password">Password</label>
+      <input id="login-password" class="input" type="password" autocomplete="current-password">
+      <div class="field-error" id="login-pw-err" style="display:none"></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%" id="login-btn" onclick="doLogin()">Sign in</button>
+    <p style="text-align:center;margin-top:10px;font-size:14px">No account? <button onclick="showPage('register')" style="background:none;border:none;color:#185FA5;cursor:pointer">Sign up</button></p>
+  </div>
+</div>
+
+<div id="page-register" class="page">
+  <div class="authcard">
+    <h1>Create account</h1>
+    <div id="register-error" class="alert alert-error" style="display:none"></div>
+    <div class="field">
+      <label for="reg-name">Full name</label>
+      <input id="reg-name" class="input" autocomplete="name">
+      <div class="field-error" id="reg-name-err" style="display:none"></div>
+    </div>
+    <div class="field">
+      <label for="reg-email">Email</label>
+      <input id="reg-email" class="input" type="email" autocomplete="email">
+      <div class="field-error" id="reg-email-err" style="display:none"></div>
+    </div>
+    <div class="field">
+      <label for="reg-password">Password</label>
+      <input id="reg-password" class="input" type="password" placeholder="At least 8 characters" autocomplete="new-password">
+      <div class="field-error" id="reg-pw-err" style="display:none"></div>
+    </div>
+    <div class="field">
+      <label>I am a...</label>
+      <div class="role-row">
+        <label class="role-opt"><input type="radio" name="reg-role" value="tenant" checked> Tenant</label>
+        <label class="role-opt"><input type="radio" name="reg-role" value="landlord"> Landlord</label>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%" id="register-btn" onclick="doRegister()">Create account</button>
+    <p style="text-align:center;margin-top:10px;font-size:14px">Have an account? <button onclick="showPage('login')" style="background:none;border:none;color:#185FA5;cursor:pointer">Sign in</button></p>
+  </div>
+</div>
+
+<div class="modal-bg hidden" id="add-room-modal">
+  <div class="modal">
+    <h2 style="margin-bottom:1rem" id="room-modal-title">List a room</h2>
+    <div id="add-room-error" class="alert alert-error" style="display:none"></div>
+    <img id="rm-img-preview" class="img-preview" alt="Room image preview">
+    <div class="field">
+      <label for="rm-image">Photo (optional)</label>
+      <input id="rm-image" class="input" type="file" accept="image/*" onchange="previewImage(event)">
+      <label id="rm-remove-img-label" style="display:none;margin-top:6px;font-weight:400"><input type="checkbox" id="rm-remove-image"> Remove current photo</label>
+    </div>
+    <div class="field">
+      <label for="rm-title">Title</label>
+      <input id="rm-title" class="input">
+      <div class="field-error" id="rm-title-err" style="display:none"></div>
+    </div>
+    <div class="field">
+      <label for="rm-desc">Description</label>
+      <textarea id="rm-desc" class="input" rows="3"></textarea>
+      <div class="field-error" id="rm-desc-err" style="display:none"></div>
+    </div>
+    <div class="field">
+      <label for="rm-price">Price (£/month)</label>
+      <input id="rm-price" class="input" type="number" min="1">
+      <div class="field-error" id="rm-price-err" style="display:none"></div>
+    </div>
+    <div class="field"><label for="rm-type">Type</label>
+      <select id="rm-type" class="input"><option>Double</option><option>Single</option><option>En-suite</option><option>Studio</option></select>
+    </div>
+    <div class="field">
+      <label for="rm-area">Area</label>
+      <input id="rm-area" class="input" placeholder="Hackney, E8">
+      <div class="field-error" id="rm-area-err" style="display:none"></div>
+    </div>
+    <div class="field">
+      <label for="rm-address">Address</label>
+      <input id="rm-address" class="input">
+      <div class="field-error" id="rm-address-err" style="display:none"></div>
+    </div>
+    <label style="display:flex;gap:6px;margin-bottom:10px;font-weight:400"><input type="checkbox" id="rm-bills"> Bills included</label>
+    <label style="display:flex;gap:6px;margin-bottom:10px;font-weight:400"><input type="checkbox" id="rm-avail" checked> Available now</label>
+    <button class="btn btn-primary" style="width:100%" id="add-room-btn" onclick="doSaveRoom()">List room</button>
+    <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="closeAddRoom()">Cancel</button>
+  </div>
+</div>
+
+<div class="modal-bg hidden" id="enquiry-modal">
+  <div class="modal">
+    <h2 style="margin-bottom:1rem">Send enquiry</h2>
+    <p id="enquiry-room-title" style="font-size:13px;color:#666;margin-bottom:10px"></p>
+    <div id="enquiry-success" class="alert alert-success" style="display:none">✓ Sent! The landlord will be in touch.</div>
+    <div id="enquiry-error" class="alert alert-error" style="display:none"></div>
+    <div class="field" id="enquiry-form-wrap">
+      <label for="enquiry-msg">Message</label>
+      <textarea id="enquiry-msg" class="input" rows="4" placeholder="Hi, is this room still available?"></textarea>
+      <div class="field-error" id="enquiry-msg-err" style="display:none"></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%" id="enquiry-btn" onclick="doEnquiry()">Send</button>
+    <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="closeEnquiry()">Close</button>
+  </div>
+</div>
+
+<div class="modal-bg hidden" id="reply-modal">
+  <div class="modal">
+    <h2 style="margin-bottom:1rem">Reply to enquiry</h2>
+    <p id="reply-context" style="font-size:13px;color:#666;margin-bottom:10px"></p>
+    <div id="reply-error" class="alert alert-error" style="display:none"></div>
+    <div class="field">
+      <label for="reply-msg">Your reply</label>
+      <textarea id="reply-msg" class="input" rows="4"></textarea>
+      <div class="field-error" id="reply-msg-err" style="display:none"></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%" id="reply-btn" onclick="doReply()">Send reply</button>
+    <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="closeReply()">Close</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
