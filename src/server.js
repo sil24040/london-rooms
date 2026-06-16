@@ -465,6 +465,44 @@ app.post('/api/rental/pay', authRequired, (req, res) => {
   res.status(201).json(payment);
 });
 
+
+// ── ENQUIRY CRUD (update + delete) ──
+app.put('/api/enquiries/:id', authRequired, (req, res) => {
+  const { message } = req.body;
+  if (!message || message.trim().length < 5)
+    return res.status(400).json({ error: 'Message must be at least 5 characters' });
+
+  const db = readDB();
+  const enquiry = db.enquiries.find(e => e._id === req.params.id && e.tenantId === req.user.userId);
+  if (!enquiry) return res.status(404).json({ error: 'Enquiry not found or not yours' });
+  if (enquiry.status === 'replied') return res.status(400).json({ error: 'Cannot edit an enquiry that has already been replied to' });
+
+  enquiry.message = message.trim();
+  writeDB(db);
+  res.json(enquiry);
+});
+
+app.delete('/api/enquiries/:id', authRequired, (req, res) => {
+  const db = readDB();
+  const idx = db.enquiries.findIndex(e => e._id === req.params.id && e.tenantId === req.user.userId);
+  if (idx === -1) return res.status(404).json({ error: 'Enquiry not found or not yours' });
+
+  db.enquiries.splice(idx, 1);
+  writeDB(db);
+  res.json({ message: 'Enquiry deleted' });
+});
+
+// ── PAYMENT DELETE ──
+app.delete('/api/rental/pay/:id', authRequired, (req, res) => {
+  const db = readDB();
+  const idx = db.payments.findIndex(p => p._id === req.params.id && p.tenantId === req.user.userId);
+  if (idx === -1) return res.status(404).json({ error: 'Payment not found or not yours' });
+
+  db.payments.splice(idx, 1);
+  writeDB(db);
+  res.json({ message: 'Payment record deleted' });
+});
+
 app.listen(PORT, () => {
   console.log(`✅ LondonRooms running at http://localhost:${PORT}`);
   console.log(`📁 Data saved to: ${DB_FILE}`);

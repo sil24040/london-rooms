@@ -2,7 +2,7 @@
   "users": [
     {
       "_id": "8vy6tczzd8mqbewqz7",
-      "name": "Tester",
+      "name": "Tenant",
       "email": "tenant@test.com",
       "password": "$2a$10$xpD2Ba.bdGe9csGhLjyCduUwBDbKaomLymgm9dByrzm2XuT6Qq32K",
       "role": "tenant",
@@ -147,7 +147,23 @@
       "image": null
     }
   ],
-  "enquiries": [],
+  "enquiries": [
+    {
+      "_id": "c82mzzt71hmqg167y8",
+      "roomId": "r1",
+      "roomTitle": "Bright double room in Hackney",
+      "roomArea": "Hackney, E8",
+      "roomPrice": 750,
+      "tenantId": "8vy6tczzd8mqbewqz7",
+      "tenantName": "Tenant",
+      "landlordId": "demo",
+      "landlordName": "Demo Landlord",
+      "message": "Hi. I need help",
+      "reply": null,
+      "status": "pending",
+      "createdAt": 1781577379520
+    }
+  ],
   "payments": [
     {
       "_id": "m961g75fz1mqbfdgdi",
