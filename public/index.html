@@ -4,6 +4,12 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>LondonRooms</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0C447C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LondonRooms">
+<link rel="apple-touch-icon" href="/icon-192.svg">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -63,6 +69,11 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
 .spinner{display:inline-block;width:16px;height:16px;border:2px solid #ccc;border-top-color:#185FA5;border-radius:50%;animation:spin .7s linear infinite}
 .loading-wrap{display:flex;justify-content:center;padding:2.5rem}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+.lang-toggle{display:flex;gap:2px;background:#f0f0f0;border-radius:6px;padding:2px}
+.lang-toggle button{border:none;background:none;padding:3px 8px;border-radius:5px;font-size:12px;cursor:pointer;color:#666;font-weight:500}
+.lang-toggle button.active{background:#185FA5;color:#fff}
+
 .role-row{display:flex;gap:10px}
 .role-opt{flex:1;border:1px solid #ccc;border-radius:8px;padding:9px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-size:14px}
 .role-opt input{accent-color:#185FA5}
@@ -86,7 +97,7 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
 .tabs button.active{color:#185FA5;border-bottom-color:#185FA5;font-weight:600}
 .img-preview{width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin-bottom:8px;display:none}
 .pagination{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:1.5rem;font-size:14px}
- 
+
 @media (max-width:700px) {
   .navlinks{display:none}
   .navlinks.open{display:flex;position:absolute;top:56px;left:0;right:0;background:#fff;flex-direction:column;padding:8px 1rem;border-bottom:1px solid #e0e0e0;gap:0}
@@ -102,10 +113,14 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
 </style>
 </head>
 <body>
- 
+
 <nav>
   <div class="logo" onclick="showPage('browse')">London<span>Rooms</span></div>
   <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">☰</button>
+  <div class="lang-toggle" style="margin-left:auto;margin-right:8px">
+    <button id="lang-en" class="active" onclick="setLang('en')">EN</button>
+    <button id="lang-pt" onclick="setLang('pt')">PT</button>
+  </div>
   <div class="navlinks" id="navlinks">
     <button onclick="showPage('browse')" id="nav-browse" class="active">Browse</button>
     <button onclick="showPage('saved')" id="nav-saved" style="display:none">Saved</button>
@@ -119,7 +134,7 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     <button class="btn btn-primary btn-sm" id="btn-register" onclick="showPage('register')">Sign up</button>
   </div>
 </nav>
- 
+
 <div id="page-browse" class="page active">
   <div class="hero">
     <h1>Find a room to rent in London</h1>
@@ -140,7 +155,7 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
       <option value="">Any type</option>
       <option>Double</option><option>Single</option><option>En-suite</option><option>Studio</option>
     </select>
-    <label><input type="checkbox" id="f-bills" onchange="onFilterChange()"> Bills incl.</label>
+    <label id="f-bills-label"><input type="checkbox" id="f-bills" onchange="onFilterChange()"> Bills incl.</label>
     <label><input type="checkbox" id="f-avail" onchange="onFilterChange()"> Available now</label>
     <select id="f-sort" onchange="onFilterChange()" aria-label="Sort by">
       <option value="newest">Newest first</option>
@@ -175,14 +190,14 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     <button class="btn btn-outline btn-sm" onclick="clearCompare()">Clear</button>
   </div>
 </div>
- 
+
 <div id="page-detail" class="page">
   <div class="container">
     <button class="btn btn-outline btn-sm" onclick="showPage('browse')">← Back</button>
     <div id="detail-content" style="margin-top:1rem"></div>
   </div>
 </div>
- 
+
 <div id="page-compare" class="page">
   <div class="container">
     <button class="btn btn-outline btn-sm" onclick="showPage('browse')">← Back</button>
@@ -190,14 +205,14 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     <div id="compare-content" style="overflow-x:auto"></div>
   </div>
 </div>
- 
+
 <div id="page-saved" class="page">
   <div class="container">
     <h1>Saved rooms</h1>
     <div id="saved-list" style="margin-top:1rem"></div>
   </div>
 </div>
- 
+
 <div id="page-dashboard" class="page">
   <div class="container">
     <h1 id="dash-title">Dashboard</h1>
@@ -226,7 +241,7 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     </div>
   </div>
 </div>
- 
+
 <div id="page-profile" class="page">
   <div class="authcard">
     <h1>My profile</h1>
@@ -260,7 +275,7 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     <button class="btn btn-primary" style="width:100%" id="profile-btn" onclick="doUpdateProfile()">Save changes</button>
   </div>
 </div>
- 
+
 <div id="page-login" class="page">
   <div class="authcard">
     <h1>Sign in</h1>
@@ -279,7 +294,7 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     <p style="text-align:center;margin-top:10px;font-size:14px">No account? <button onclick="showPage('register')" style="background:none;border:none;color:#185FA5;cursor:pointer">Sign up</button></p>
   </div>
 </div>
- 
+
 <div id="page-register" class="page">
   <div class="authcard">
     <h1>Create account</h1>
@@ -310,7 +325,7 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     <p style="text-align:center;margin-top:10px;font-size:14px">Have an account? <button onclick="showPage('login')" style="background:none;border:none;color:#185FA5;cursor:pointer">Sign in</button></p>
   </div>
 </div>
- 
+
 <div class="modal-bg hidden" id="add-room-modal">
   <div class="modal">
     <h2 style="margin-bottom:1rem" id="room-modal-title">List a room</h2>
@@ -355,7 +370,7 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="closeAddRoom()">Cancel</button>
   </div>
 </div>
- 
+
 <div class="modal-bg hidden" id="enquiry-modal">
   <div class="modal">
     <h2 style="margin-bottom:1rem">Send enquiry</h2>
@@ -371,7 +386,7 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="closeEnquiry()">Close</button>
   </div>
 </div>
- 
+
 <div class="modal-bg hidden" id="reply-modal">
   <div class="modal">
     <h2 style="margin-bottom:1rem">Reply to enquiry</h2>
@@ -386,9 +401,9 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="closeReply()">Close</button>
   </div>
 </div>
- 
- 
- 
+
+
+
 <div class="modal-bg hidden" id="edit-enq-modal">
   <div class="modal">
     <h2 style="margin-bottom:1rem">Edit enquiry</h2>
@@ -402,7 +417,7 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="closeEditEnquiry()">Cancel</button>
   </div>
 </div>
- 
+
 <div class="modal-bg hidden" id="pay-modal">
   <div class="modal">
     <h2 style="margin-bottom:0.25rem">Pay rent</h2>
@@ -438,9 +453,18 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="closePayRent()">Close</button>
   </div>
 </div>
- 
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW error:', err));
+  });
+}
+</script>
+<script src="i18n.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
- 
