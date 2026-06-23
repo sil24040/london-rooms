@@ -6,7 +6,7 @@ const jwt     = require('jsonwebtoken');
 const multer  = require('multer');
 
 const app        = express();
-const PORT       = 3000;
+const PORT       = process.env.PORT || 3000;
 const JWT_SECRET = 'londonrooms-secret-key';
 const DB_FILE    = path.join(__dirname, 'db.json');
 const UPLOADS_DIR = path.join(__dirname, '../public/uploads');
@@ -63,6 +63,11 @@ function uid() {
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
+
+// ── LANDING PAGE AS HOMEPAGE ──
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/landing.html'));
+});
 
 function authRequired(req, res, next) {
   const header = req.headers.authorization;
@@ -141,8 +146,6 @@ app.put('/api/auth/profile', authRequired, async (req, res) => {
 
   u.name = name.trim();
   u.email = emailLower;
-
-  // keep room/enquiry denormalised names in sync
   db.rooms.forEach(r => { if (r.landlordId === u._id) r.landlordName = u.name; });
   db.enquiries.forEach(e => {
     if (e.tenantId === u._id) e.tenantName = u.name;
@@ -164,6 +167,7 @@ const AREA_COORDS = {
   SW2: [51.4540, -0.1150], SW4: [51.4620, -0.1380], SW9: [51.4660, -0.1140], SW15: [51.4620, -0.2160],
   W1: [51.5140, -0.1490], W10: [51.5200, -0.2150],
 };
+
 function coordsForArea(area) {
   const match = area.match(/([A-Z]{1,2}\d{1,2})/);
   if (match && AREA_COORDS[match[1]]) return AREA_COORDS[match[1]];
@@ -193,18 +197,13 @@ app.get('/api/rooms', (req, res) => {
   else if (sort === 'oldest')      rooms.sort((a, b) => a.createdAt - b.createdAt);
   else                             rooms.sort((a, b) => b.createdAt - a.createdAt);
 
-  const total = rooms.length;
+  const total    = rooms.length;
   const pageNum  = Math.max(1, Number(page) || 1);
   const limitNum = Math.max(1, Number(limit) || total || 1);
-  const start = (pageNum - 1) * limitNum;
-  const paged = (page || limit) ? rooms.slice(start, start + limitNum) : rooms;
+  const start    = (pageNum - 1) * limitNum;
+  const paged    = (page || limit) ? rooms.slice(start, start + limitNum) : rooms;
 
-  res.json({
-    items: paged,
-    total,
-    page: pageNum,
-    totalPages: Math.max(1, Math.ceil(total / limitNum)),
-  });
+  res.json({ items: paged, total, page: pageNum, totalPages: Math.max(1, Math.ceil(total / limitNum)) });
 });
 
 app.get('/api/rooms/saved', authRequired, (req, res) => {
@@ -216,8 +215,7 @@ app.post('/api/rooms/compare', (req, res) => {
   const { ids } = req.body;
   if (!Array.isArray(ids) || !ids.length) return res.status(400).json({ error: 'No room ids provided' });
   const db = readDB();
-  const rooms = db.rooms.filter(r => ids.includes(r._id));
-  res.json(rooms);
+  res.json(db.rooms.filter(r => ids.includes(r._id)));
 });
 
 app.get('/api/rooms/:id', (req, res) => {
@@ -236,7 +234,6 @@ app.post('/api/rooms', authRequired, upload.single('image'), (req, res) => {
     return res.status(400).json({ error: 'Please fill in all required fields' });
 
   const [lat, lng] = coordsForArea(area);
-
   const db   = readDB();
   const room = {
     _id: uid(), title, description, price: Number(price), area, address,
@@ -245,8 +242,7 @@ app.post('/api/rooms', authRequired, upload.single('image'), (req, res) => {
     availableNow:  !(availableNow === 'false' || availableNow === false),
     landlordId:   req.user.userId,
     landlordName: req.user.name,
-    savedBy: [],
-    lat, lng,
+    savedBy: [], lat, lng,
     image: req.file ? '/uploads/' + req.file.filename : null,
     createdAt: Date.now(),
   };
@@ -269,20 +265,17 @@ app.put('/api/rooms/:id', authRequired, upload.single('image'), (req, res) => {
     room.lat = lat; room.lng = lng;
   }
 
-  room.title = title;
-  room.description = description;
-  room.price = Number(price);
-  room.area = area;
-  room.address = address;
-  room.type = type || room.type;
+  room.title        = title;
+  room.description  = description;
+  room.price        = Number(price);
+  room.area         = area;
+  room.address      = address;
+  room.type         = type || room.type;
   room.billsIncluded = billsIncluded === 'true' || billsIncluded === true;
   room.availableNow  = !(availableNow === 'false' || availableNow === false);
 
-  if (req.file) {
-    room.image = '/uploads/' + req.file.filename;
-  } else if (removeImage === 'true') {
-    room.image = null;
-  }
+  if (req.file)              room.image = '/uploads/' + req.file.filename;
+  else if (removeImage === 'true') room.image = null;
 
   writeDB(db);
   res.json(room);
@@ -324,19 +317,10 @@ app.post('/api/enquiries/:roomId', authRequired, (req, res) => {
   if (!room) return res.status(404).json({ error: 'Room not found' });
 
   const enquiry = {
-    _id: uid(),
-    roomId:       room._id,
-    roomTitle:    room.title,
-    roomArea:     room.area,
-    roomPrice:    room.price,
-    tenantId:     req.user.userId,
-    tenantName:   req.user.name,
-    landlordId:   room.landlordId,
-    landlordName: room.landlordName,
-    message:      message.trim(),
-    reply:        null,
-    status:       'pending',
-    createdAt:    Date.now(),
+    _id: uid(), roomId: room._id, roomTitle: room.title, roomArea: room.area, roomPrice: room.price,
+    tenantId: req.user.userId, tenantName: req.user.name,
+    landlordId: room.landlordId, landlordName: room.landlordName,
+    message: message.trim(), reply: null, status: 'pending', createdAt: Date.now(),
   };
   db.enquiries.push(enquiry);
   writeDB(db);
@@ -361,30 +345,39 @@ app.post('/api/enquiries/:id/reply', authRequired, (req, res) => {
   res.json(enquiry);
 });
 
+app.put('/api/enquiries/:id', authRequired, (req, res) => {
+  const { message } = req.body;
+  if (!message || message.trim().length < 5)
+    return res.status(400).json({ error: 'Message must be at least 5 characters' });
+
+  const db = readDB();
+  const enquiry = db.enquiries.find(e => e._id === req.params.id && e.tenantId === req.user.userId);
+  if (!enquiry) return res.status(404).json({ error: 'Enquiry not found or not yours' });
+  if (enquiry.status === 'replied') return res.status(400).json({ error: 'Cannot edit an enquiry that has already been replied to' });
+
+  enquiry.message = message.trim();
+  writeDB(db);
+  res.json(enquiry);
+});
+
+app.delete('/api/enquiries/:id', authRequired, (req, res) => {
+  const db = readDB();
+  const idx = db.enquiries.findIndex(e => e._id === req.params.id && e.tenantId === req.user.userId);
+  if (idx === -1) return res.status(404).json({ error: 'Enquiry not found or not yours' });
+  db.enquiries.splice(idx, 1);
+  writeDB(db);
+  res.json({ message: 'Enquiry deleted' });
+});
+
 app.get('/api/enquiries/mine', authRequired, (req, res) => {
   const db = readDB();
-  const list = db.enquiries
-    .filter(e => e.tenantId === req.user.userId)
-    .sort((a, b) => b.createdAt - a.createdAt);
-  res.json(list);
+  res.json(db.enquiries.filter(e => e.tenantId === req.user.userId).sort((a, b) => b.createdAt - a.createdAt));
 });
 
 app.get('/api/enquiries/received', authRequired, (req, res) => {
   const db = readDB();
-  const list = db.enquiries
-    .filter(e => e.landlordId === req.user.userId)
-    .sort((a, b) => b.createdAt - a.createdAt);
-  res.json(list);
+  res.json(db.enquiries.filter(e => e.landlordId === req.user.userId).sort((a, b) => b.createdAt - a.createdAt));
 });
-
-// ── ERROR HANDLER for multer ──
-app.use((err, req, res, next) => {
-  if (err instanceof multer.MulterError || err.message === 'Only image files are allowed') {
-    return res.status(400).json({ error: err.message });
-  }
-  next(err);
-});
-
 
 // ── RENTAL / PAYMENTS ──
 app.post('/api/rental/set', authRequired, (req, res) => {
@@ -430,7 +423,6 @@ app.post('/api/rental/pay', authRequired, (req, res) => {
   const { month, cardNumber, cardName, expiry, cvc } = req.body;
   if (!month || !/^\d{4}-\d{2}$/.test(month))
     return res.status(400).json({ error: 'Invalid month' });
-
   if (!cardName || !cardName.trim())
     return res.status(400).json({ error: 'Cardholder name is required' });
   if (!cardNumber || !/^\d{12,19}$/.test(cardNumber.replace(/\s/g,'')))
@@ -452,55 +444,29 @@ app.post('/api/rental/pay', authRequired, (req, res) => {
 
   const last4 = cardNumber.replace(/\s/g,'').slice(-4);
   const payment = {
-    _id: uid(),
-    tenantId: u._id,
-    roomId: room._id,
-    month,
-    amount: room.price,
-    cardLast4: last4,
-    paidAt: Date.now(),
+    _id: uid(), tenantId: u._id, roomId: room._id,
+    month, amount: room.price, cardLast4: last4, paidAt: Date.now(),
   };
   db.payments.push(payment);
   writeDB(db);
   res.status(201).json(payment);
 });
 
-
-// ── ENQUIRY CRUD (update + delete) ──
-app.put('/api/enquiries/:id', authRequired, (req, res) => {
-  const { message } = req.body;
-  if (!message || message.trim().length < 5)
-    return res.status(400).json({ error: 'Message must be at least 5 characters' });
-
-  const db = readDB();
-  const enquiry = db.enquiries.find(e => e._id === req.params.id && e.tenantId === req.user.userId);
-  if (!enquiry) return res.status(404).json({ error: 'Enquiry not found or not yours' });
-  if (enquiry.status === 'replied') return res.status(400).json({ error: 'Cannot edit an enquiry that has already been replied to' });
-
-  enquiry.message = message.trim();
-  writeDB(db);
-  res.json(enquiry);
-});
-
-app.delete('/api/enquiries/:id', authRequired, (req, res) => {
-  const db = readDB();
-  const idx = db.enquiries.findIndex(e => e._id === req.params.id && e.tenantId === req.user.userId);
-  if (idx === -1) return res.status(404).json({ error: 'Enquiry not found or not yours' });
-
-  db.enquiries.splice(idx, 1);
-  writeDB(db);
-  res.json({ message: 'Enquiry deleted' });
-});
-
-// ── PAYMENT DELETE ──
 app.delete('/api/rental/pay/:id', authRequired, (req, res) => {
   const db = readDB();
   const idx = db.payments.findIndex(p => p._id === req.params.id && p.tenantId === req.user.userId);
   if (idx === -1) return res.status(404).json({ error: 'Payment not found or not yours' });
-
   db.payments.splice(idx, 1);
   writeDB(db);
   res.json({ message: 'Payment record deleted' });
+});
+
+// ── MULTER ERROR HANDLER ──
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError || err.message === 'Only image files are allowed') {
+    return res.status(400).json({ error: err.message });
+  }
+  next(err);
 });
 
 app.listen(PORT, () => {
