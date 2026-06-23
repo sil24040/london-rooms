@@ -62,12 +62,13 @@ function uid() {
 }
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public')));
 
-// ── LANDING PAGE AS HOMEPAGE ──
+// ── LANDING PAGE AS HOMEPAGE (must be BEFORE static middleware) ──
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/landing.html'));
 });
+
+app.use(express.static(path.join(__dirname, '../public')));
 
 function authRequired(req, res, next) {
   const header = req.headers.authorization;
@@ -265,16 +266,16 @@ app.put('/api/rooms/:id', authRequired, upload.single('image'), (req, res) => {
     room.lat = lat; room.lng = lng;
   }
 
-  room.title        = title;
-  room.description  = description;
-  room.price        = Number(price);
-  room.area         = area;
-  room.address      = address;
-  room.type         = type || room.type;
+  room.title         = title;
+  room.description   = description;
+  room.price         = Number(price);
+  room.area          = area;
+  room.address       = address;
+  room.type          = type || room.type;
   room.billsIncluded = billsIncluded === 'true' || billsIncluded === true;
   room.availableNow  = !(availableNow === 'false' || availableNow === false);
 
-  if (req.file)              room.image = '/uploads/' + req.file.filename;
+  if (req.file)                    room.image = '/uploads/' + req.file.filename;
   else if (removeImage === 'true') room.image = null;
 
   writeDB(db);
