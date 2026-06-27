@@ -1,16 +1,23 @@
+require('dotenv').config();
 const express = require('express');
-const fs      = require('fs');
 const path    = require('path');
 const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
 const multer  = require('multer');
+const { Pool } = require('pg');
 
 const app        = express();
 const PORT       = process.env.PORT || 3000;
-const JWT_SECRET = 'londonrooms-secret-key';
-const DB_FILE    = path.join(__dirname, 'db.json');
-const UPLOADS_DIR = path.join(__dirname, '../public/uploads');
+const JWT_SECRET = process.env.JWT_SECRET || 'londonrooms-secret-key';
 
+// PostgreSQL connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
+const UPLOADS_DIR = path.join(__dirname, '../public/uploads');
+const fs = require('fs');
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const storage = multer.diskStorage({
@@ -26,44 +33,13 @@ const upload = multer({
   }
 });
 
-function readDB() {
-  if (!fs.existsSync(DB_FILE)) {
-    const seed = {
-      users: [],
-      rooms: [
-        { _id: 'r1', title: 'Bright double room in Hackney', description: 'Lovely double room in a shared house with 3 professionals. Modern kitchen, fast WiFi and a garden.', price: 750, area: 'Hackney, E8', address: 'Mare Street', type: 'Double', billsIncluded: true, availableNow: true, landlordId: 'demo', landlordName: 'Demo Landlord', savedBy: [], lat: 51.5396, lng: -0.0553, image: null, createdAt: Date.now() },
-        { _id: 'r2', title: 'Large double — female household', description: 'Spacious double room in a clean quiet flat. 5 mins walk to Peckham Rye station. Zone 2.', price: 695, area: 'Peckham, SE15', address: 'Rye Lane', type: 'Double', billsIncluded: true, availableNow: true, landlordId: 'demo', landlordName: 'Demo Landlord', savedBy: [], lat: 51.4703, lng: -0.0702, image: null, createdAt: Date.now() - 1000 },
-        { _id: 'r3', title: 'En-suite room in Shoreditch', description: 'Modern en-suite room in a boutique flat. Gym access included. Perfect for professionals.', price: 875, area: 'Shoreditch, E1', address: 'Bethnal Green Road', type: 'En-suite', billsIncluded: true, availableNow: true, landlordId: 'demo', landlordName: 'Demo Landlord', savedBy: [], lat: 51.5255, lng: -0.0729, image: null, createdAt: Date.now() - 2000 },
-        { _id: 'r4', title: 'Cosy single room — best value', description: 'Compact but cosy single room. Pet-friendly, garden, 3 mins from Lewisham DLR.', price: 620, area: 'Lewisham, SE13', address: 'Loampit Vale', type: 'Single', billsIncluded: false, availableNow: true, landlordId: 'demo', landlordName: 'Demo Landlord', savedBy: [], lat: 51.4625, lng: -0.0119, image: null, createdAt: Date.now() - 3000 },
-        { _id: 'r5', title: 'Double room in creative house', description: 'Room in a creative house share near Hackney Wick. Housemates work in design and tech. Big kitchen.', price: 800, area: 'Hackney Wick, E9', address: 'White Post Lane', type: 'Double', billsIncluded: true, availableNow: true, landlordId: 'demo', landlordName: 'Demo Landlord', savedBy: [], lat: 51.5390, lng: -0.0246, image: null, createdAt: Date.now() - 4000 },
-        { _id: 'r6', title: 'Quiet double — Clapham South', description: 'Well-presented double room in a quiet professional flat. Close to Clapham South tube.', price: 725, area: 'Clapham, SW4', address: 'Clapham Park Road', type: 'Double', billsIncluded: true, availableNow: true, landlordId: 'demo', landlordName: 'Demo Landlord', savedBy: [], lat: 51.4536, lng: -0.1367, image: null, createdAt: Date.now() - 5000 },
-        { _id: 'r7', title: 'Studio flat in Camden', description: 'Self-contained studio with your own kitchenette. 10 mins to Camden Market.', price: 1050, area: 'Camden, NW1', address: 'Kentish Town Road', type: 'Studio', billsIncluded: true, availableNow: false, landlordId: 'demo', landlordName: 'Demo Landlord', savedBy: [], lat: 51.5390, lng: -0.1426, image: null, createdAt: Date.now() - 6000 },
-        { _id: 'r8', title: 'Double room near Brixton tube', description: 'Bright double in a well-kept Victorian terrace. Shared with 2 friendly professionals and a lovely garden.', price: 760, area: 'Brixton, SW2', address: 'Railton Road', type: 'Double', billsIncluded: true, availableNow: true, landlordId: 'demo', landlordName: 'Demo Landlord', savedBy: [], lat: 51.4543, lng: -0.1153, image: null, createdAt: Date.now() - 7000 },
-      ],
-      enquiries: [],
-      payments: [],
-    };
-    fs.writeFileSync(DB_FILE, JSON.stringify(seed, null, 2));
-  }
-  const db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-  db.rooms.forEach(r => { if (r.image === undefined) r.image = null; });
-  db.enquiries.forEach(e => { if (e.reply === undefined) e.reply = null; });
-  if (!db.payments) db.payments = [];
-  db.users.forEach(u => { if (u.rentalRoomId === undefined) u.rentalRoomId = null; });
-  return db;
-}
-
-function writeDB(data) {
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-}
-
 function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
 app.use(express.json());
 
-// ── LANDING PAGE AS HOMEPAGE (must be BEFORE static middleware) ──
+// ── LANDING PAGE AS HOMEPAGE ──
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/landing.html'));
 });
@@ -89,17 +65,22 @@ app.post('/api/auth/register', async (req, res) => {
   if (password.length < 8)
     return res.status(400).json({ error: 'Password must be at least 8 characters' });
 
-  const db = readDB();
-  if (db.users.find(u => u.email === email.toLowerCase()))
-    return res.status(409).json({ error: 'That email is already registered' });
+  try {
+    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
+    if (existing.rows.length > 0)
+      return res.status(409).json({ error: 'That email is already registered' });
 
-  const hashed = await bcrypt.hash(password, 10);
-  const user   = { _id: uid(), name, email: email.toLowerCase(), password: hashed, role: role || 'tenant' };
-  db.users.push(user);
-  writeDB(db);
-
-  const token = jwt.sign({ userId: user._id, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
-  res.status(201).json({ token, user: { _id: user._id, name: user.name, email: user.email, role: user.role } });
+    const hashed = await bcrypt.hash(password, 10);
+    const result = await pool.query(
+      'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
+      [name, email.toLowerCase(), hashed, role || 'tenant']
+    );
+    const user = result.rows[0];
+    const token = jwt.sign({ userId: user.id, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    res.status(201).json({ token, user: { _id: user.id, name: user.name, email: user.email, role: user.role } });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 app.post('/api/auth/login', async (req, res) => {
@@ -107,55 +88,65 @@ app.post('/api/auth/login', async (req, res) => {
   if (!email || !password)
     return res.status(400).json({ error: 'Email and password are required' });
 
-  const db   = readDB();
-  const user = db.users.find(u => u.email === email.toLowerCase());
-  if (!user || !(await bcrypt.compare(password, user.password)))
-    return res.status(401).json({ error: 'Wrong email or password' });
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email.toLowerCase()]);
+    const user = result.rows[0];
+    if (!user || !(await bcrypt.compare(password, user.password)))
+      return res.status(401).json({ error: 'Wrong email or password' });
 
-  const token = jwt.sign({ userId: user._id, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
-  res.json({ token, user: { _id: user._id, name: user.name, email: user.email, role: user.role } });
+    const token = jwt.sign({ userId: user.id, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token, user: { _id: user.id, name: user.name, email: user.email, role: user.role } });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.get('/api/auth/me', authRequired, (req, res) => {
-  const db = readDB();
-  const u = db.users.find(x => x._id === req.user.userId);
-  if (!u) return res.status(404).json({ error: 'User not found' });
-  res.json({ _id: u._id, name: u.name, email: u.email, role: u.role });
+app.get('/api/auth/me', authRequired, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, name, email, role FROM users WHERE id = $1', [req.user.userId]);
+    if (!result.rows[0]) return res.status(404).json({ error: 'User not found' });
+    const u = result.rows[0];
+    res.json({ _id: u.id, name: u.name, email: u.email, role: u.role });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // ── PROFILE ──
 app.put('/api/auth/profile', authRequired, async (req, res) => {
   const { name, email, currentPassword, newPassword } = req.body;
-  const db = readDB();
-  const u = db.users.find(x => x._id === req.user.userId);
-  if (!u) return res.status(404).json({ error: 'User not found' });
+  if (!name?.trim()) return res.status(400).json({ error: 'Name is required' });
+  if (!email?.includes('@')) return res.status(400).json({ error: 'Valid email is required' });
 
-  if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
-  if (!email || !email.includes('@')) return res.status(400).json({ error: 'Valid email is required' });
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE id = $1', [req.user.userId]);
+    const u = result.rows[0];
+    if (!u) return res.status(404).json({ error: 'User not found' });
 
-  const emailLower = email.toLowerCase();
-  if (emailLower !== u.email && db.users.find(x => x.email === emailLower))
-    return res.status(409).json({ error: 'That email is already in use' });
+    const emailLower = email.toLowerCase();
+    if (emailLower !== u.email) {
+      const existing = await pool.query('SELECT id FROM users WHERE email = $1', [emailLower]);
+      if (existing.rows.length > 0) return res.status(409).json({ error: 'That email is already in use' });
+    }
 
-  if (newPassword) {
-    if (!currentPassword) return res.status(400).json({ error: 'Enter your current password to set a new one' });
-    if (!(await bcrypt.compare(currentPassword, u.password)))
-      return res.status(401).json({ error: 'Current password is incorrect' });
-    if (newPassword.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters' });
-    u.password = await bcrypt.hash(newPassword, 10);
+    let hashedPw = u.password;
+    if (newPassword) {
+      if (!currentPassword) return res.status(400).json({ error: 'Enter your current password' });
+      if (!(await bcrypt.compare(currentPassword, u.password)))
+        return res.status(401).json({ error: 'Current password is incorrect' });
+      if (newPassword.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters' });
+      hashedPw = await bcrypt.hash(newPassword, 10);
+    }
+
+    await pool.query('UPDATE users SET name=$1, email=$2, password=$3 WHERE id=$4',
+      [name.trim(), emailLower, hashedPw, req.user.userId]);
+    await pool.query('UPDATE rooms SET landlord_name=$1 WHERE landlord_id=$2', [name.trim(), req.user.userId]);
+
+    const token = jwt.sign({ userId: u.id, name: name.trim(), role: u.role }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token, user: { _id: u.id, name: name.trim(), email: emailLower, role: u.role } });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
   }
-
-  u.name = name.trim();
-  u.email = emailLower;
-  db.rooms.forEach(r => { if (r.landlordId === u._id) r.landlordName = u.name; });
-  db.enquiries.forEach(e => {
-    if (e.tenantId === u._id) e.tenantName = u.name;
-    if (e.landlordId === u._id) e.landlordName = u.name;
-  });
-
-  writeDB(db);
-  const token = jwt.sign({ userId: u._id, name: u.name, role: u.role }, JWT_SECRET, { expiresIn: '7d' });
-  res.json({ token, user: { _id: u._id, name: u.name, email: u.email, role: u.role } });
 });
 
 // ── ROOMS ──
@@ -168,298 +159,332 @@ const AREA_COORDS = {
   SW2: [51.4540, -0.1150], SW4: [51.4620, -0.1380], SW9: [51.4660, -0.1140], SW15: [51.4620, -0.2160],
   W1: [51.5140, -0.1490], W10: [51.5200, -0.2150],
 };
-
 function coordsForArea(area) {
   const match = area.match(/([A-Z]{1,2}\d{1,2})/);
   if (match && AREA_COORDS[match[1]]) return AREA_COORDS[match[1]];
   return [51.509 + (Math.random()-0.5)*0.06, -0.118 + (Math.random()-0.5)*0.1];
 }
 
-app.get('/api/rooms', (req, res) => {
+function mapRoom(r) {
+  return {
+    _id: r.id, title: r.title, description: r.description, price: r.price,
+    area: r.area, address: r.address, type: r.type,
+    billsIncluded: r.bills_included, availableNow: r.available_now,
+    landlordId: r.landlord_id, landlordName: r.landlord_name,
+    savedBy: r.saved_by || [], lat: r.lat, lng: r.lng, image: r.image,
+    createdAt: new Date(r.created_at).getTime()
+  };
+}
+
+app.get('/api/rooms', async (req, res) => {
   const { search, maxPrice, type, billsIncluded, availableNow, sort, page, limit } = req.query;
-  const db = readDB();
-  let rooms = [...db.rooms];
+  try {
+    let query = 'SELECT * FROM rooms WHERE 1=1';
+    const params = [];
+    let i = 1;
 
-  if (search) {
-    const q = search.toLowerCase();
-    rooms = rooms.filter(r =>
-      r.title.toLowerCase().includes(q) ||
-      r.area.toLowerCase().includes(q) ||
-      r.address.toLowerCase().includes(q)
-    );
+    if (search) {
+      query += ` AND (LOWER(title) LIKE $${i} OR LOWER(area) LIKE $${i} OR LOWER(address) LIKE $${i})`;
+      params.push(`%${search.toLowerCase()}%`); i++;
+    }
+    if (maxPrice) { query += ` AND price <= $${i}`; params.push(Number(maxPrice)); i++; }
+    if (type) { query += ` AND type = $${i}`; params.push(type); i++; }
+    if (billsIncluded === 'true') { query += ` AND bills_included = true`; }
+    if (availableNow === 'true') { query += ` AND available_now = true`; }
+
+    if (sort === 'price_asc') query += ' ORDER BY price ASC';
+    else if (sort === 'price_desc') query += ' ORDER BY price DESC';
+    else if (sort === 'oldest') query += ' ORDER BY created_at ASC';
+    else query += ' ORDER BY created_at DESC';
+
+    const result = await pool.query(query, params);
+    const rooms = result.rows.map(mapRoom);
+    const total = rooms.length;
+    const pageNum = Math.max(1, Number(page) || 1);
+    const limitNum = Math.max(1, Number(limit) || total || 1);
+    const start = (pageNum - 1) * limitNum;
+    const paged = (page || limit) ? rooms.slice(start, start + limitNum) : rooms;
+
+    res.json({ items: paged, total, page: pageNum, totalPages: Math.max(1, Math.ceil(total / limitNum)) });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
   }
-  if (maxPrice)                    rooms = rooms.filter(r => r.price <= Number(maxPrice));
-  if (type)                        rooms = rooms.filter(r => r.type === type);
-  if (billsIncluded === 'true')    rooms = rooms.filter(r => r.billsIncluded);
-  if (availableNow  === 'true')    rooms = rooms.filter(r => r.availableNow);
-
-  if (sort === 'price_asc')        rooms.sort((a, b) => a.price - b.price);
-  else if (sort === 'price_desc')  rooms.sort((a, b) => b.price - a.price);
-  else if (sort === 'oldest')      rooms.sort((a, b) => a.createdAt - b.createdAt);
-  else                             rooms.sort((a, b) => b.createdAt - a.createdAt);
-
-  const total    = rooms.length;
-  const pageNum  = Math.max(1, Number(page) || 1);
-  const limitNum = Math.max(1, Number(limit) || total || 1);
-  const start    = (pageNum - 1) * limitNum;
-  const paged    = (page || limit) ? rooms.slice(start, start + limitNum) : rooms;
-
-  res.json({ items: paged, total, page: pageNum, totalPages: Math.max(1, Math.ceil(total / limitNum)) });
 });
 
-app.get('/api/rooms/saved', authRequired, (req, res) => {
-  const db = readDB();
-  res.json(db.rooms.filter(r => r.savedBy.includes(req.user.userId)));
+app.get('/api/rooms/saved', authRequired, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM rooms WHERE $1 = ANY(saved_by)', [req.user.userId]);
+    res.json(result.rows.map(mapRoom));
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.post('/api/rooms/compare', (req, res) => {
+app.post('/api/rooms/compare', async (req, res) => {
   const { ids } = req.body;
   if (!Array.isArray(ids) || !ids.length) return res.status(400).json({ error: 'No room ids provided' });
-  const db = readDB();
-  res.json(db.rooms.filter(r => ids.includes(r._id)));
+  try {
+    const result = await pool.query('SELECT * FROM rooms WHERE id = ANY($1)', [ids]);
+    res.json(result.rows.map(mapRoom));
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.get('/api/rooms/:id', (req, res) => {
-  const db   = readDB();
-  const room = db.rooms.find(r => r._id === req.params.id);
-  if (!room) return res.status(404).json({ error: 'Room not found' });
-  res.json(room);
+app.get('/api/rooms/:id', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM rooms WHERE id = $1', [req.params.id]);
+    if (!result.rows[0]) return res.status(404).json({ error: 'Room not found' });
+    res.json(mapRoom(result.rows[0]));
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.post('/api/rooms', authRequired, upload.single('image'), (req, res) => {
-  if (req.user.role !== 'landlord')
-    return res.status(403).json({ error: 'Only landlords can list rooms' });
-
+app.post('/api/rooms', authRequired, upload.single('image'), async (req, res) => {
+  if (req.user.role !== 'landlord') return res.status(403).json({ error: 'Only landlords can list rooms' });
   const { title, description, price, area, address, type, billsIncluded, availableNow } = req.body;
   if (!title || !description || !price || !area || !address)
     return res.status(400).json({ error: 'Please fill in all required fields' });
 
   const [lat, lng] = coordsForArea(area);
-  const db   = readDB();
-  const room = {
-    _id: uid(), title, description, price: Number(price), area, address,
-    type: type || 'Double',
-    billsIncluded: billsIncluded === 'true' || billsIncluded === true,
-    availableNow:  !(availableNow === 'false' || availableNow === false),
-    landlordId:   req.user.userId,
-    landlordName: req.user.name,
-    savedBy: [], lat, lng,
-    image: req.file ? '/uploads/' + req.file.filename : null,
-    createdAt: Date.now(),
-  };
-  db.rooms.push(room);
-  writeDB(db);
-  res.status(201).json(room);
+  const id = uid();
+  const image = req.file ? '/uploads/' + req.file.filename : null;
+
+  try {
+    const result = await pool.query(
+      'INSERT INTO rooms (id, title, description, price, area, address, type, bills_included, available_now, landlord_id, landlord_name, lat, lng, image) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *',
+      [id, title, description, Number(price), area, address, type || 'Double',
+       billsIncluded === 'true' || billsIncluded === true,
+       !(availableNow === 'false' || availableNow === false),
+       req.user.userId, req.user.name, lat, lng, image]
+    );
+    res.status(201).json(mapRoom(result.rows[0]));
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.put('/api/rooms/:id', authRequired, upload.single('image'), (req, res) => {
-  const db = readDB();
-  const room = db.rooms.find(r => r._id === req.params.id && r.landlordId === req.user.userId);
-  if (!room) return res.status(404).json({ error: 'Room not found or not yours' });
-
+app.put('/api/rooms/:id', authRequired, upload.single('image'), async (req, res) => {
   const { title, description, price, area, address, type, billsIncluded, availableNow, removeImage } = req.body;
   if (!title || !description || !price || !area || !address)
     return res.status(400).json({ error: 'Please fill in all required fields' });
 
-  if (area !== room.area) {
-    const [lat, lng] = coordsForArea(area);
-    room.lat = lat; room.lng = lng;
+  try {
+    const existing = await pool.query('SELECT * FROM rooms WHERE id=$1 AND landlord_id=$2', [req.params.id, req.user.userId]);
+    if (!existing.rows[0]) return res.status(404).json({ error: 'Room not found or not yours' });
+
+    const [lat, lng] = area !== existing.rows[0].area ? coordsForArea(area) : [existing.rows[0].lat, existing.rows[0].lng];
+    let image = existing.rows[0].image;
+    if (req.file) image = '/uploads/' + req.file.filename;
+    else if (removeImage === 'true') image = null;
+
+    const result = await pool.query(
+      'UPDATE rooms SET title=$1,description=$2,price=$3,area=$4,address=$5,type=$6,bills_included=$7,available_now=$8,lat=$9,lng=$10,image=$11 WHERE id=$12 RETURNING *',
+      [title, description, Number(price), area, address, type,
+       billsIncluded === 'true' || billsIncluded === true,
+       !(availableNow === 'false' || availableNow === false),
+       lat, lng, image, req.params.id]
+    );
+    res.json(mapRoom(result.rows[0]));
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
   }
-
-  room.title         = title;
-  room.description   = description;
-  room.price         = Number(price);
-  room.area          = area;
-  room.address       = address;
-  room.type          = type || room.type;
-  room.billsIncluded = billsIncluded === 'true' || billsIncluded === true;
-  room.availableNow  = !(availableNow === 'false' || availableNow === false);
-
-  if (req.file)                    room.image = '/uploads/' + req.file.filename;
-  else if (removeImage === 'true') room.image = null;
-
-  writeDB(db);
-  res.json(room);
 });
 
-app.delete('/api/rooms/:id', authRequired, (req, res) => {
-  const db  = readDB();
-  const idx = db.rooms.findIndex(r => r._id === req.params.id && r.landlordId === req.user.userId);
-  if (idx === -1) return res.status(404).json({ error: 'Room not found or not yours' });
-  db.rooms.splice(idx, 1);
-  writeDB(db);
-  res.json({ message: 'Room deleted' });
+app.delete('/api/rooms/:id', authRequired, async (req, res) => {
+  try {
+    const result = await pool.query('DELETE FROM rooms WHERE id=$1 AND landlord_id=$2', [req.params.id, req.user.userId]);
+    if (result.rowCount === 0) return res.status(404).json({ error: 'Room not found or not yours' });
+    res.json({ message: 'Room deleted' });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.post('/api/rooms/:id/save', authRequired, (req, res) => {
-  const db   = readDB();
-  const room = db.rooms.find(r => r._id === req.params.id);
-  if (!room) return res.status(404).json({ error: 'Room not found' });
-
-  const uid2    = req.user.userId;
-  const already = room.savedBy.includes(uid2);
-  if (already) room.savedBy = room.savedBy.filter(id => id !== uid2);
-  else         room.savedBy.push(uid2);
-  writeDB(db);
-  res.json({ saved: !already });
+app.post('/api/rooms/:id/save', authRequired, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT saved_by FROM rooms WHERE id=$1', [req.params.id]);
+    if (!result.rows[0]) return res.status(404).json({ error: 'Room not found' });
+    const savedBy = result.rows[0].saved_by || [];
+    const already = savedBy.includes(req.user.userId);
+    const newSaved = already ? savedBy.filter(id => id !== req.user.userId) : [...savedBy, req.user.userId];
+    await pool.query('UPDATE rooms SET saved_by=$1 WHERE id=$2', [newSaved, req.params.id]);
+    res.json({ saved: !already });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // ── ENQUIRIES ──
-app.post('/api/enquiries/:roomId', authRequired, (req, res) => {
-  if (req.user.role !== 'tenant')
-    return res.status(403).json({ error: 'Only tenants can send enquiries' });
-
-  const { message } = req.body;
-  if (!message || message.trim().length < 5)
-    return res.status(400).json({ error: 'Message must be at least 5 characters' });
-
-  const db   = readDB();
-  const room = db.rooms.find(r => r._id === req.params.roomId);
-  if (!room) return res.status(404).json({ error: 'Room not found' });
-
-  const enquiry = {
-    _id: uid(), roomId: room._id, roomTitle: room.title, roomArea: room.area, roomPrice: room.price,
-    tenantId: req.user.userId, tenantName: req.user.name,
-    landlordId: room.landlordId, landlordName: room.landlordName,
-    message: message.trim(), reply: null, status: 'pending', createdAt: Date.now(),
+function mapEnquiry(e) {
+  return {
+    _id: e.id, roomId: e.room_id, roomTitle: e.room_title, roomArea: e.room_area, roomPrice: e.room_price,
+    tenantId: e.tenant_id, tenantName: e.tenant_name,
+    landlordId: e.landlord_id, landlordName: e.landlord_name,
+    message: e.message, reply: e.reply, status: e.status,
+    createdAt: new Date(e.created_at).getTime()
   };
-  db.enquiries.push(enquiry);
-  writeDB(db);
-  res.status(201).json(enquiry);
-});
+}
 
-app.post('/api/enquiries/:id/reply', authRequired, (req, res) => {
-  if (req.user.role !== 'landlord')
-    return res.status(403).json({ error: 'Only landlords can reply' });
-
-  const { reply } = req.body;
-  if (!reply || reply.trim().length < 2)
-    return res.status(400).json({ error: 'Reply must be at least 2 characters' });
-
-  const db = readDB();
-  const enquiry = db.enquiries.find(e => e._id === req.params.id && e.landlordId === req.user.userId);
-  if (!enquiry) return res.status(404).json({ error: 'Enquiry not found' });
-
-  enquiry.reply = reply.trim();
-  enquiry.status = 'replied';
-  writeDB(db);
-  res.json(enquiry);
-});
-
-app.put('/api/enquiries/:id', authRequired, (req, res) => {
+app.post('/api/enquiries/:roomId', authRequired, async (req, res) => {
+  if (req.user.role !== 'tenant') return res.status(403).json({ error: 'Only tenants can send enquiries' });
   const { message } = req.body;
-  if (!message || message.trim().length < 5)
-    return res.status(400).json({ error: 'Message must be at least 5 characters' });
+  if (!message || message.trim().length < 5) return res.status(400).json({ error: 'Message must be at least 5 characters' });
 
-  const db = readDB();
-  const enquiry = db.enquiries.find(e => e._id === req.params.id && e.tenantId === req.user.userId);
-  if (!enquiry) return res.status(404).json({ error: 'Enquiry not found or not yours' });
-  if (enquiry.status === 'replied') return res.status(400).json({ error: 'Cannot edit an enquiry that has already been replied to' });
+  try {
+    const room = await pool.query('SELECT * FROM rooms WHERE id=$1', [req.params.roomId]);
+    if (!room.rows[0]) return res.status(404).json({ error: 'Room not found' });
+    const r = room.rows[0];
 
-  enquiry.message = message.trim();
-  writeDB(db);
-  res.json(enquiry);
+    const result = await pool.query(
+      'INSERT INTO enquiries (room_id,room_title,room_area,room_price,tenant_id,tenant_name,landlord_id,landlord_name,message) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+      [r.id, r.title, r.area, r.price, req.user.userId, req.user.name, r.landlord_id, r.landlord_name, message.trim()]
+    );
+    res.status(201).json(mapEnquiry(result.rows[0]));
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.delete('/api/enquiries/:id', authRequired, (req, res) => {
-  const db = readDB();
-  const idx = db.enquiries.findIndex(e => e._id === req.params.id && e.tenantId === req.user.userId);
-  if (idx === -1) return res.status(404).json({ error: 'Enquiry not found or not yours' });
-  db.enquiries.splice(idx, 1);
-  writeDB(db);
-  res.json({ message: 'Enquiry deleted' });
+app.post('/api/enquiries/:id/reply', authRequired, async (req, res) => {
+  if (req.user.role !== 'landlord') return res.status(403).json({ error: 'Only landlords can reply' });
+  const { reply } = req.body;
+  if (!reply || reply.trim().length < 2) return res.status(400).json({ error: 'Reply must be at least 2 characters' });
+
+  try {
+    const result = await pool.query(
+      'UPDATE enquiries SET reply=$1, status=$2 WHERE id=$3 AND landlord_id=$4 RETURNING *',
+      [reply.trim(), 'replied', req.params.id, req.user.userId]
+    );
+    if (!result.rows[0]) return res.status(404).json({ error: 'Enquiry not found' });
+    res.json(mapEnquiry(result.rows[0]));
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.get('/api/enquiries/mine', authRequired, (req, res) => {
-  const db = readDB();
-  res.json(db.enquiries.filter(e => e.tenantId === req.user.userId).sort((a, b) => b.createdAt - a.createdAt));
+app.put('/api/enquiries/:id', authRequired, async (req, res) => {
+  const { message } = req.body;
+  if (!message || message.trim().length < 5) return res.status(400).json({ error: 'Message must be at least 5 characters' });
+
+  try {
+    const result = await pool.query(
+      'UPDATE enquiries SET message=$1 WHERE id=$2 AND tenant_id=$3 AND status!=\'replied\' RETURNING *',
+      [message.trim(), req.params.id, req.user.userId]
+    );
+    if (!result.rows[0]) return res.status(404).json({ error: 'Enquiry not found, not yours, or already replied' });
+    res.json(mapEnquiry(result.rows[0]));
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.get('/api/enquiries/received', authRequired, (req, res) => {
-  const db = readDB();
-  res.json(db.enquiries.filter(e => e.landlordId === req.user.userId).sort((a, b) => b.createdAt - a.createdAt));
+app.delete('/api/enquiries/:id', authRequired, async (req, res) => {
+  try {
+    const result = await pool.query('DELETE FROM enquiries WHERE id=$1 AND tenant_id=$2', [req.params.id, req.user.userId]);
+    if (result.rowCount === 0) return res.status(404).json({ error: 'Enquiry not found or not yours' });
+    res.json({ message: 'Enquiry deleted' });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/enquiries/mine', authRequired, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM enquiries WHERE tenant_id=$1 ORDER BY created_at DESC', [req.user.userId]);
+    res.json(result.rows.map(mapEnquiry));
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/enquiries/received', authRequired, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM enquiries WHERE landlord_id=$1 ORDER BY created_at DESC', [req.user.userId]);
+    res.json(result.rows.map(mapEnquiry));
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // ── RENTAL / PAYMENTS ──
-app.post('/api/rental/set', authRequired, (req, res) => {
-  if (req.user.role !== 'tenant')
-    return res.status(403).json({ error: 'Only tenants can set a rental' });
-
+app.post('/api/rental/set', authRequired, async (req, res) => {
+  if (req.user.role !== 'tenant') return res.status(403).json({ error: 'Only tenants can set a rental' });
   const { roomId } = req.body;
-  const db = readDB();
-  const u = db.users.find(x => x._id === req.user.userId);
-  if (!u) return res.status(404).json({ error: 'User not found' });
-
-  if (roomId) {
-    const room = db.rooms.find(r => r._id === roomId);
-    if (!room) return res.status(404).json({ error: 'Room not found' });
+  try {
+    await pool.query('UPDATE users SET rental_room_id=$1 WHERE id=$2', [roomId || null, req.user.userId]);
+    res.json({ rentalRoomId: roomId || null });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
   }
-  u.rentalRoomId = roomId || null;
-  writeDB(db);
-  res.json({ rentalRoomId: u.rentalRoomId });
 });
 
-app.get('/api/rental/mine', authRequired, (req, res) => {
-  if (req.user.role !== 'tenant')
-    return res.status(403).json({ error: 'Only tenants have rentals' });
+app.get('/api/rental/mine', authRequired, async (req, res) => {
+  if (req.user.role !== 'tenant') return res.status(403).json({ error: 'Only tenants have rentals' });
+  try {
+    const userResult = await pool.query('SELECT rental_room_id FROM users WHERE id=$1', [req.user.userId]);
+    const rentalRoomId = userResult.rows[0]?.rental_room_id;
+    if (!rentalRoomId) return res.json({ room: null, payments: [] });
 
-  const db = readDB();
-  const u = db.users.find(x => x._id === req.user.userId);
-  if (!u || !u.rentalRoomId) return res.json({ room: null, payments: [] });
+    const roomResult = await pool.query('SELECT * FROM rooms WHERE id=$1', [rentalRoomId]);
+    if (!roomResult.rows[0]) return res.json({ room: null, payments: [] });
 
-  const room = db.rooms.find(r => r._id === u.rentalRoomId);
-  if (!room) return res.json({ room: null, payments: [] });
-
-  const payments = db.payments
-    .filter(p => p.tenantId === req.user.userId && p.roomId === room._id)
-    .sort((a, b) => a.month.localeCompare(b.month));
-
-  res.json({ room, payments });
+    const paymentsResult = await pool.query(
+      'SELECT * FROM payments WHERE tenant_id=$1 AND room_id=$2 ORDER BY month ASC',
+      [req.user.userId, rentalRoomId]
+    );
+    res.json({ room: mapRoom(roomResult.rows[0]), payments: paymentsResult.rows.map(p => ({
+      _id: p.id, tenantId: p.tenant_id, roomId: p.room_id,
+      month: p.month, amount: p.amount, cardLast4: p.card_last4,
+      paidAt: new Date(p.paid_at).getTime()
+    }))});
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.post('/api/rental/pay', authRequired, (req, res) => {
-  if (req.user.role !== 'tenant')
-    return res.status(403).json({ error: 'Only tenants can pay rent' });
-
+app.post('/api/rental/pay', authRequired, async (req, res) => {
+  if (req.user.role !== 'tenant') return res.status(403).json({ error: 'Only tenants can pay rent' });
   const { month, cardNumber, cardName, expiry, cvc } = req.body;
-  if (!month || !/^\d{4}-\d{2}$/.test(month))
-    return res.status(400).json({ error: 'Invalid month' });
-  if (!cardName || !cardName.trim())
-    return res.status(400).json({ error: 'Cardholder name is required' });
-  if (!cardNumber || !/^\d{12,19}$/.test(cardNumber.replace(/\s/g,'')))
-    return res.status(400).json({ error: 'Enter a valid card number' });
-  if (!expiry || !/^\d{2}\/\d{2}$/.test(expiry))
-    return res.status(400).json({ error: 'Expiry must be MM/YY' });
-  if (!cvc || !/^\d{3,4}$/.test(cvc))
-    return res.status(400).json({ error: 'Enter a valid CVC' });
+  if (!month || !/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ error: 'Invalid month' });
+  if (!cardName?.trim()) return res.status(400).json({ error: 'Cardholder name is required' });
+  if (!cardNumber || !/^\d{12,19}$/.test(cardNumber.replace(/\s/g,''))) return res.status(400).json({ error: 'Enter a valid card number' });
+  if (!expiry || !/^\d{2}\/\d{2}$/.test(expiry)) return res.status(400).json({ error: 'Expiry must be MM/YY' });
+  if (!cvc || !/^\d{3,4}$/.test(cvc)) return res.status(400).json({ error: 'Enter a valid CVC' });
 
-  const db = readDB();
-  const u = db.users.find(x => x._id === req.user.userId);
-  if (!u || !u.rentalRoomId) return res.status(400).json({ error: 'No rental set' });
+  try {
+    const userResult = await pool.query('SELECT rental_room_id FROM users WHERE id=$1', [req.user.userId]);
+    const rentalRoomId = userResult.rows[0]?.rental_room_id;
+    if (!rentalRoomId) return res.status(400).json({ error: 'No rental set' });
 
-  const room = db.rooms.find(r => r._id === u.rentalRoomId);
-  if (!room) return res.status(404).json({ error: 'Room not found' });
+    const roomResult = await pool.query('SELECT price FROM rooms WHERE id=$1', [rentalRoomId]);
+    if (!roomResult.rows[0]) return res.status(404).json({ error: 'Room not found' });
 
-  const existing = db.payments.find(p => p.tenantId === u._id && p.roomId === room._id && p.month === month);
-  if (existing) return res.status(409).json({ error: 'This month is already marked as paid' });
+    const existing = await pool.query('SELECT id FROM payments WHERE tenant_id=$1 AND room_id=$2 AND month=$3',
+      [req.user.userId, rentalRoomId, month]);
+    if (existing.rows.length > 0) return res.status(409).json({ error: 'This month is already marked as paid' });
 
-  const last4 = cardNumber.replace(/\s/g,'').slice(-4);
-  const payment = {
-    _id: uid(), tenantId: u._id, roomId: room._id,
-    month, amount: room.price, cardLast4: last4, paidAt: Date.now(),
-  };
-  db.payments.push(payment);
-  writeDB(db);
-  res.status(201).json(payment);
+    const last4 = cardNumber.replace(/\s/g,'').slice(-4);
+    const result = await pool.query(
+      'INSERT INTO payments (tenant_id, room_id, month, amount, card_last4) VALUES ($1,$2,$3,$4,$5) RETURNING *',
+      [req.user.userId, rentalRoomId, month, roomResult.rows[0].price, last4]
+    );
+    const p = result.rows[0];
+    res.status(201).json({ _id: p.id, tenantId: p.tenant_id, roomId: p.room_id, month: p.month, amount: p.amount, cardLast4: p.card_last4, paidAt: new Date(p.paid_at).getTime() });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.delete('/api/rental/pay/:id', authRequired, (req, res) => {
-  const db = readDB();
-  const idx = db.payments.findIndex(p => p._id === req.params.id && p.tenantId === req.user.userId);
-  if (idx === -1) return res.status(404).json({ error: 'Payment not found or not yours' });
-  db.payments.splice(idx, 1);
-  writeDB(db);
-  res.json({ message: 'Payment record deleted' });
+app.delete('/api/rental/pay/:id', authRequired, async (req, res) => {
+  try {
+    const result = await pool.query('DELETE FROM payments WHERE id=$1 AND tenant_id=$2', [req.params.id, req.user.userId]);
+    if (result.rowCount === 0) return res.status(404).json({ error: 'Payment not found or not yours' });
+    res.json({ message: 'Payment record deleted' });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // ── MULTER ERROR HANDLER ──
@@ -472,5 +497,5 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`✅ LondonRooms running at http://localhost:${PORT}`);
-  console.log(`📁 Data saved to: ${DB_FILE}`);
+  console.log(`🗄️  Database: Supabase PostgreSQL`);
 });
