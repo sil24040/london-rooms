@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const path    = require('path');
 const bcrypt  = require('bcryptjs');
@@ -13,6 +14,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'londonrooms-secret-key';
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
+});
+
+// Surface any unexpected pool errors instead of crashing silently
+pool.on('error', (err) => {
+  console.error('Unexpected PostgreSQL pool error:', err);
 });
 
 const UPLOADS_DIR = path.join(__dirname, '../public/uploads');
@@ -78,6 +84,7 @@ app.post('/api/auth/register', async (req, res) => {
     const token = jwt.sign({ userId: user.id, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.status(201).json({ token, user: { _id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (e) {
+    console.error('POST /api/auth/register failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -96,6 +103,7 @@ app.post('/api/auth/login', async (req, res) => {
     const token = jwt.sign({ userId: user.id, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { _id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (e) {
+    console.error('POST /api/auth/login failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -107,6 +115,7 @@ app.get('/api/auth/me', authRequired, async (req, res) => {
     const u = result.rows[0];
     res.json({ _id: u.id, name: u.name, email: u.email, role: u.role });
   } catch (e) {
+    console.error('GET /api/auth/me failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -144,6 +153,7 @@ app.put('/api/auth/profile', authRequired, async (req, res) => {
     const token = jwt.sign({ userId: u.id, name: name.trim(), role: u.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { _id: u.id, name: name.trim(), email: emailLower, role: u.role } });
   } catch (e) {
+    console.error('PUT /api/auth/profile failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -206,6 +216,7 @@ app.get('/api/rooms', async (req, res) => {
 
     res.json({ items: paged, total, page: pageNum, totalPages: Math.max(1, Math.ceil(total / limitNum)) });
   } catch (e) {
+    console.error('GET /api/rooms failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -215,6 +226,7 @@ app.get('/api/rooms/saved', authRequired, async (req, res) => {
     const result = await pool.query('SELECT * FROM rooms WHERE $1 = ANY(saved_by)', [req.user.userId]);
     res.json(result.rows.map(mapRoom));
   } catch (e) {
+    console.error('GET /api/rooms/saved failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -226,6 +238,7 @@ app.post('/api/rooms/compare', async (req, res) => {
     const result = await pool.query('SELECT * FROM rooms WHERE id = ANY($1)', [ids]);
     res.json(result.rows.map(mapRoom));
   } catch (e) {
+    console.error('POST /api/rooms/compare failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -236,6 +249,7 @@ app.get('/api/rooms/:id', async (req, res) => {
     if (!result.rows[0]) return res.status(404).json({ error: 'Room not found' });
     res.json(mapRoom(result.rows[0]));
   } catch (e) {
+    console.error('GET /api/rooms/:id failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -260,6 +274,7 @@ app.post('/api/rooms', authRequired, upload.single('image'), async (req, res) =>
     );
     res.status(201).json(mapRoom(result.rows[0]));
   } catch (e) {
+    console.error('POST /api/rooms failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -287,6 +302,7 @@ app.put('/api/rooms/:id', authRequired, upload.single('image'), async (req, res)
     );
     res.json(mapRoom(result.rows[0]));
   } catch (e) {
+    console.error('PUT /api/rooms/:id failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -297,6 +313,7 @@ app.delete('/api/rooms/:id', authRequired, async (req, res) => {
     if (result.rowCount === 0) return res.status(404).json({ error: 'Room not found or not yours' });
     res.json({ message: 'Room deleted' });
   } catch (e) {
+    console.error('DELETE /api/rooms/:id failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -311,6 +328,7 @@ app.post('/api/rooms/:id/save', authRequired, async (req, res) => {
     await pool.query('UPDATE rooms SET saved_by=$1 WHERE id=$2', [newSaved, req.params.id]);
     res.json({ saved: !already });
   } catch (e) {
+    console.error('POST /api/rooms/:id/save failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -342,6 +360,7 @@ app.post('/api/enquiries/:roomId', authRequired, async (req, res) => {
     );
     res.status(201).json(mapEnquiry(result.rows[0]));
   } catch (e) {
+    console.error('POST /api/enquiries/:roomId failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -359,6 +378,7 @@ app.post('/api/enquiries/:id/reply', authRequired, async (req, res) => {
     if (!result.rows[0]) return res.status(404).json({ error: 'Enquiry not found' });
     res.json(mapEnquiry(result.rows[0]));
   } catch (e) {
+    console.error('POST /api/enquiries/:id/reply failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -375,6 +395,7 @@ app.put('/api/enquiries/:id', authRequired, async (req, res) => {
     if (!result.rows[0]) return res.status(404).json({ error: 'Enquiry not found, not yours, or already replied' });
     res.json(mapEnquiry(result.rows[0]));
   } catch (e) {
+    console.error('PUT /api/enquiries/:id failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -385,6 +406,7 @@ app.delete('/api/enquiries/:id', authRequired, async (req, res) => {
     if (result.rowCount === 0) return res.status(404).json({ error: 'Enquiry not found or not yours' });
     res.json({ message: 'Enquiry deleted' });
   } catch (e) {
+    console.error('DELETE /api/enquiries/:id failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -394,6 +416,7 @@ app.get('/api/enquiries/mine', authRequired, async (req, res) => {
     const result = await pool.query('SELECT * FROM enquiries WHERE tenant_id=$1 ORDER BY created_at DESC', [req.user.userId]);
     res.json(result.rows.map(mapEnquiry));
   } catch (e) {
+    console.error('GET /api/enquiries/mine failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -403,6 +426,7 @@ app.get('/api/enquiries/received', authRequired, async (req, res) => {
     const result = await pool.query('SELECT * FROM enquiries WHERE landlord_id=$1 ORDER BY created_at DESC', [req.user.userId]);
     res.json(result.rows.map(mapEnquiry));
   } catch (e) {
+    console.error('GET /api/enquiries/received failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -415,6 +439,7 @@ app.post('/api/rental/set', authRequired, async (req, res) => {
     await pool.query('UPDATE users SET rental_room_id=$1 WHERE id=$2', [roomId || null, req.user.userId]);
     res.json({ rentalRoomId: roomId || null });
   } catch (e) {
+    console.error('POST /api/rental/set failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -439,6 +464,7 @@ app.get('/api/rental/mine', authRequired, async (req, res) => {
       paidAt: new Date(p.paid_at).getTime()
     }))});
   } catch (e) {
+    console.error('GET /api/rental/mine failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -472,6 +498,7 @@ app.post('/api/rental/pay', authRequired, async (req, res) => {
     const p = result.rows[0];
     res.status(201).json({ _id: p.id, tenantId: p.tenant_id, roomId: p.room_id, month: p.month, amount: p.amount, cardLast4: p.card_last4, paidAt: new Date(p.paid_at).getTime() });
   } catch (e) {
+    console.error('POST /api/rental/pay failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -482,6 +509,7 @@ app.delete('/api/rental/pay/:id', authRequired, async (req, res) => {
     if (result.rowCount === 0) return res.status(404).json({ error: 'Payment not found or not yours' });
     res.json({ message: 'Payment record deleted' });
   } catch (e) {
+    console.error('DELETE /api/rental/pay/:id failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -494,7 +522,19 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`✅ LondonRooms running at http://localhost:${PORT}`);
-  console.log(`🗄️  Database: Supabase PostgreSQL`);
+
+  // Verify the database connection is actually working, and report honestly.
+  if (!process.env.DATABASE_URL) {
+    console.error('⚠️  DATABASE_URL is not set! Check your .env file and that dotenv is loaded.');
+    return;
+  }
+  try {
+    await pool.query('SELECT 1');
+    console.log('🗄️  Database connected: Supabase PostgreSQL');
+  } catch (e) {
+    console.error('❌ Database connection FAILED:', e.message);
+    console.error('    Full error:', e);
+  }
 });
