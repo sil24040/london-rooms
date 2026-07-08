@@ -13,7 +13,7 @@ let editingRoomId = null;
 let replyEnquiryId = null;
 let myRentalRoomId = null;
 let rentalPayments = [];
-
+ 
 async function api(method, path, body, isForm) {
   const opts = { method, headers: {} };
   if (token) opts.headers['Authorization'] = 'Bearer ' + token;
@@ -30,11 +30,11 @@ async function api(method, path, body, isForm) {
   if (!res.ok) throw new Error(data.error || 'Something went wrong');
   return data;
 }
-
+ 
 function toggleMenu(){
   document.getElementById('navlinks').classList.toggle('open');
 }
-
+ 
 function showPage(name) {
   document.getElementById('navlinks').classList.remove('open');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -47,7 +47,7 @@ function showPage(name) {
   if (name === 'dashboard') loadDashboard();
   if (name === 'profile') loadProfile();
 }
-
+ 
 function updateNav() {
   const li = !!user;
   document.getElementById('btn-login').style.display = li ? 'none' : '';
@@ -58,7 +58,7 @@ function updateNav() {
   document.getElementById('nav-profile').style.display = li ? '' : 'none';
   document.getElementById('nav-user').textContent = li ? t('hi') + ', ' + user.name.split(' ')[0] : '';
 }
-
+ 
 function saveAuth(d) {
   token = d.token; user = d.user;
   localStorage.setItem('token', token);
@@ -70,10 +70,10 @@ function logout() {
   localStorage.removeItem('token'); localStorage.removeItem('user');
   updateNav(); showPage('browse');
 }
-
+ 
 function clearFieldErrors(ids){ ids.forEach(id => { const el = document.getElementById(id); if(el){ el.style.display='none'; el.textContent=''; } }); }
 function setFieldError(id, msg){ const el = document.getElementById(id); el.textContent = msg; el.style.display=''; }
-
+ 
 // ── AUTH ──
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
@@ -81,12 +81,12 @@ async function doLogin() {
   const err = document.getElementById('login-error');
   err.style.display = 'none';
   clearFieldErrors(['login-email-err','login-pw-err']);
-
+ 
   let valid = true;
   if (!email || !email.includes('@')) { setFieldError('login-email-err','Enter a valid email'); valid=false; }
   if (!password) { setFieldError('login-pw-err','Password is required'); valid=false; }
   if (!valid) return;
-
+ 
   const btn = document.getElementById('login-btn');
   btn.disabled = true; btn.textContent = 'Signing in...';
   try {
@@ -95,7 +95,7 @@ async function doLogin() {
   } catch(e) { err.textContent = e.message; err.style.display=''; }
   finally { btn.disabled=false; btn.textContent=t('signIn'); }
 }
-
+ 
 async function doRegister() {
   const name = document.getElementById('reg-name').value.trim();
   const email = document.getElementById('reg-email').value.trim();
@@ -104,13 +104,13 @@ async function doRegister() {
   const err = document.getElementById('register-error');
   err.style.display = 'none';
   clearFieldErrors(['reg-name-err','reg-email-err','reg-pw-err']);
-
+ 
   let valid = true;
   if (!name) { setFieldError('reg-name-err','Name is required'); valid=false; }
   if (!email || !email.includes('@')) { setFieldError('reg-email-err','Enter a valid email'); valid=false; }
   if (password.length < 8) { setFieldError('reg-pw-err','At least 8 characters'); valid=false; }
   if (!valid) return;
-
+ 
   const btn = document.getElementById('register-btn');
   btn.disabled = true; btn.textContent = 'Creating...';
   try {
@@ -119,7 +119,7 @@ async function doRegister() {
   } catch(e) { err.textContent = e.message; err.style.display=''; }
   finally { btn.disabled=false; btn.textContent='Create account'; }
 }
-
+ 
 // ── PROFILE ──
 function loadProfile() {
   if (!user) { showPage('login'); return; }
@@ -131,7 +131,7 @@ function loadProfile() {
   document.getElementById('profile-error').style.display='none';
   document.getElementById('profile-success').style.display='none';
 }
-
+ 
 async function doUpdateProfile() {
   const name = document.getElementById('profile-name').value.trim();
   const email = document.getElementById('profile-email').value.trim();
@@ -141,13 +141,13 @@ async function doUpdateProfile() {
   const okBox = document.getElementById('profile-success');
   errBox.style.display='none'; okBox.style.display='none';
   clearFieldErrors(['profile-name-err','profile-email-err','profile-pw-err']);
-
+ 
   let valid = true;
   if (!name) { setFieldError('profile-name-err','Name is required'); valid=false; }
   if (!email || !email.includes('@')) { setFieldError('profile-email-err','Enter a valid email'); valid=false; }
   if (newPassword && newPassword.length < 8) { setFieldError('profile-pw-err','New password must be at least 8 characters'); valid=false; }
   if (!valid) return;
-
+ 
   const btn = document.getElementById('profile-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
   try {
@@ -159,10 +159,10 @@ async function doUpdateProfile() {
   } catch(e) { errBox.textContent = e.message; errBox.style.display=''; }
   finally { btn.disabled=false; btn.textContent='Save changes'; }
 }
-
+ 
 // ── BROWSE / ROOMS ──
 function onFilterChange() { currentPage = 1; loadRooms(); }
-
+ 
 async function loadRooms() {
   const params = new URLSearchParams();
   const search = document.getElementById('search-input').value.trim();
@@ -179,13 +179,13 @@ async function loadRooms() {
   if (sort) params.set('sort', sort);
   params.set('page', currentPage);
   params.set('limit', 6);
-
+ 
   document.getElementById('rooms-loading').style.display='';
   document.getElementById('rooms-grid').style.display='none';
   document.getElementById('rooms-map-wrap').style.display='none';
   document.getElementById('rooms-empty').style.display='none';
   document.getElementById('pagination').style.display='none';
-
+ 
   try {
     const res = await api('GET','/rooms?'+params);
     currentRooms = res.items;
@@ -201,7 +201,7 @@ async function loadRooms() {
     document.getElementById('rooms-grid').style.display='';
   }
 }
-
+ 
 function renderPagination() {
   const el = document.getElementById('pagination');
   if (totalPages <= 1 || currentView !== 'list') { el.style.display='none'; return; }
@@ -218,7 +218,7 @@ function goPage(p) {
   loadRooms();
   window.scrollTo({top:0, behavior:'smooth'});
 }
-
+ 
 function setView(view) {
   currentView = view;
   document.getElementById('view-list-btn').classList.toggle('active', view==='list');
@@ -226,7 +226,7 @@ function setView(view) {
   renderView();
   renderPagination();
 }
-
+ 
 function renderView() {
   if (!currentRooms.length) return;
   if (currentView === 'list') {
@@ -240,7 +240,7 @@ function renderView() {
     renderBrowseMap();
   }
 }
-
+ 
 function renderBrowseMap() {
   if (!browseMap) {
     browseMap = L.map('browse-map');
@@ -250,14 +250,14 @@ function renderBrowseMap() {
   }
   browseMarkers.forEach(m => browseMap.removeLayer(m));
   browseMarkers = [];
-
+ 
   const pts = currentRooms.filter(r => r.lat && r.lng);
   pts.forEach(r => {
     const marker = L.marker([r.lat, r.lng]).addTo(browseMap);
     marker.bindPopup(`<b>£${r.price}/mo</b><br>${escapeHtml(r.title)}<br>${escapeHtml(r.area)}<br><button class="popup-view-btn" onclick="showDetail('${r._id}')">View room</button>`);
     browseMarkers.push(marker);
   });
-
+ 
   if (pts.length) {
     const bounds = L.latLngBounds(pts.map(r => [r.lat, r.lng]));
     browseMap.fitBounds(bounds, { padding: [30,30] });
@@ -266,7 +266,7 @@ function renderBrowseMap() {
   }
   setTimeout(() => browseMap.invalidateSize(), 100);
 }
-
+ 
 function clearFilters(){
   document.getElementById('search-input').value='';
   document.getElementById('f-price').value='';
@@ -277,13 +277,13 @@ function clearFilters(){
   currentPage = 1;
   loadRooms();
 }
-
+ 
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str ?? '';
   return div.innerHTML;
 }
-
+ 
 function renderCard(r) {
   const img = r.image
     ? `<img class="card-img" src="${r.image}" alt="${escapeHtml(r.title)}">`
@@ -303,7 +303,7 @@ function renderCard(r) {
     </div>
   </div>`;
 }
-
+ 
 // ── COMPARE ──
 function toggleCompare(id, checked) {
   if (checked) {
@@ -350,7 +350,7 @@ async function showCompare() {
     el.innerHTML = html;
   } catch(e) { el.innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
 }
-
+ 
 // ── DETAIL ──
 async function showDetail(id) {
   currentRoomId = id;
@@ -381,7 +381,7 @@ async function showDetail(id) {
         : `<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openEnquiry('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Send enquiry</button>
            <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="setMyRental('${r._id}')">${myRentalRoomId===r._id ? t('thisIsMyRoom') : t('markAsMyRoom')}</button>`}
       </div>`;
-
+ 
     if (r.lat && r.lng) {
       setTimeout(() => {
         detailMap = L.map('detail-map').setView([r.lat, r.lng], 14);
@@ -394,8 +394,8 @@ async function showDetail(id) {
     }
   } catch(e) { document.getElementById('detail-content').innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
 }
-
-
+ 
+ 
 async function setMyRental(roomId) {
   try {
     const newId = myRentalRoomId === roomId ? null : roomId;
@@ -404,7 +404,7 @@ async function setMyRental(roomId) {
     showDetail(roomId);
   } catch(e) { alert(e.message); }
 }
-
+ 
 // ── SAVED ──
 async function loadSaved() {
   const el = document.getElementById('saved-list');
@@ -416,7 +416,7 @@ async function loadSaved() {
       : '<div class="grid">'+rooms.map(renderCard).join('')+'</div>';
   } catch(e) { el.innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
 }
-
+ 
 // ── DASHBOARD ──
 async function loadDashboard() {
   if (!user) { showPage('login'); return; }
@@ -433,14 +433,14 @@ async function loadDashboard() {
     loadMyRental();
   }
 }
-
+ 
 function switchLandlordTab(tab) {
   document.getElementById('tab-listings').classList.toggle('active', tab==='listings');
   document.getElementById('tab-enquiries').classList.toggle('active', tab==='enquiries');
   document.getElementById('landlord-listings-tab').style.display = tab==='listings' ? '' : 'none';
   document.getElementById('landlord-enquiries-tab').style.display = tab==='enquiries' ? '' : 'none';
 }
-
+ 
 async function loadTenantEnquiries() {
   const el = document.getElementById('tenant-enquiries');
   el.innerHTML = '<div class="loading-wrap"><span class="spinner"></span></div>';
@@ -452,7 +452,7 @@ async function loadTenantEnquiries() {
         <div class="meta">${escapeHtml(e.roomArea)} · £${e.roomPrice}/mo · To: ${escapeHtml(e.landlordName)}</div>
         <div style="font-size:13px;margin:6px 0" id="enq-msg-${e._id}">"${escapeHtml(e.message)}"</div>
         <div class="meta">${new Date(e.createdAt).toLocaleDateString('en-GB')} · <span class="badge ${e.status==='replied'?'badge-replied':'badge-avail'}">${e.status}</span></div>
-        ${e.reply ? `<div style="margin-top:8px;padding:8px;background:#f5f5f3;border-radius:8px;font-size:13px"><strong>'+t('landlordReply')+'</strong><br>${escapeHtml(e.reply)}</div>` : ''}
+        ${e.reply ? `<div style="margin-top:8px;padding:8px;background:#f5f5f3;border-radius:8px;font-size:13px"><strong>${t('landlordReply')}</strong><br>${escapeHtml(e.reply)}</div>` : ''}
         ${e.status !== 'replied' ? `
         <div style="display:flex;gap:6px;margin-top:8px">
           <button class="btn btn-outline btn-sm" onclick="openEditEnquiry('${e._id}','${escapeHtml(e.message).replace(/'/g,"\\'")}')">Edit</button>
@@ -461,7 +461,7 @@ async function loadTenantEnquiries() {
       </div>`).join('');
   } catch(e) { el.innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
 }
-
+ 
 async function loadLandlordRooms() {
   const el = document.getElementById('landlord-rooms');
   el.innerHTML = '<div class="loading-wrap"><span class="spinner"></span></div>';
@@ -485,7 +485,7 @@ async function loadLandlordRooms() {
       </div>`).join('');
   } catch(e) { el.innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
 }
-
+ 
 async function loadLandlordEnquiries() {
   const el = document.getElementById('landlord-enquiries');
   el.innerHTML = '<div class="loading-wrap"><span class="spinner"></span></div>';
@@ -497,16 +497,16 @@ async function loadLandlordEnquiries() {
         <div class="meta">From: ${escapeHtml(e.tenantName)}</div>
         <div style="font-size:13px;margin:6px 0">"${escapeHtml(e.message)}"</div>
         <div class="meta">${new Date(e.createdAt).toLocaleDateString('en-GB')} · <span class="badge ${e.status==='replied'?'badge-replied':'badge-avail'}">${e.status}</span></div>
-        ${e.reply ? `<div style="margin-top:8px;padding:8px;background:#f5f5f3;border-radius:8px;font-size:13px"><strong>'+t('yourReplyLabel')+'</strong><br>${escapeHtml(e.reply)}</div>` : `<button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="openReply('${e._id}','${escapeHtml(e.roomTitle).replace(/'/g,"\\'")}','${escapeHtml(e.tenantName).replace(/'/g,"\\'")}')">Reply</button>`}
+        ${e.reply ? `<div style="margin-top:8px;padding:8px;background:#f5f5f3;border-radius:8px;font-size:13px"><strong>${t('yourReplyLabel')}</strong><br>${escapeHtml(e.reply)}</div>` : `<button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="openReply('${e._id}','${escapeHtml(e.roomTitle).replace(/'/g,"\\'")}','${escapeHtml(e.tenantName).replace(/'/g,"\\'")}')">Reply</button>`}
       </div>`).join('');
   } catch(e) { el.innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
 }
-
+ 
 async function deleteRoom(id) {
   if (!confirm(t('delete'))) return;
   try { await api('DELETE','/rooms/'+id); loadLandlordRooms(); } catch(e){ alert(e.message); }
 }
-
+ 
 // ── ADD / EDIT ROOM ──
 function previewImage(e) {
   const file = e.target.files[0];
@@ -516,7 +516,7 @@ function previewImage(e) {
   reader.onload = ev => { img.src = ev.target.result; img.style.display=''; };
   reader.readAsDataURL(file);
 }
-
+ 
 function openAddRoom(){
   editingRoomId = null;
   document.getElementById('room-modal-title').textContent = 'List a room';
@@ -533,7 +533,7 @@ function openAddRoom(){
   document.getElementById('rm-image').value='';
   clearFieldErrors(['rm-title-err','rm-desc-err','rm-price-err','rm-area-err','rm-address-err']);
 }
-
+ 
 async function openEditRoom(id) {
   try {
     const r = await api('GET','/rooms/'+id);
@@ -563,9 +563,9 @@ async function openEditRoom(id) {
     }
   } catch(e) { alert(e.message); }
 }
-
+ 
 function closeAddRoom(){ document.getElementById('add-room-modal').classList.add('hidden'); }
-
+ 
 async function doSaveRoom() {
   const title=document.getElementById('rm-title').value.trim();
   const description=document.getElementById('rm-desc').value.trim();
@@ -580,7 +580,7 @@ async function doSaveRoom() {
   const err=document.getElementById('add-room-error');
   err.style.display='none';
   clearFieldErrors(['rm-title-err','rm-desc-err','rm-price-err','rm-area-err','rm-address-err']);
-
+ 
   let valid = true;
   if (!title) { setFieldError('rm-title-err','Title is required'); valid=false; }
   if (!description || description.length < 10) { setFieldError('rm-desc-err','Description must be at least 10 characters'); valid=false; }
@@ -588,7 +588,7 @@ async function doSaveRoom() {
   if (!area) { setFieldError('rm-area-err','Area is required'); valid=false; }
   if (!address) { setFieldError('rm-address-err','Address is required'); valid=false; }
   if (!valid) return;
-
+ 
   const formData = new FormData();
   formData.append('title', title);
   formData.append('description', description);
@@ -600,7 +600,7 @@ async function doSaveRoom() {
   formData.append('availableNow', availableNow);
   if (imageFile) formData.append('image', imageFile);
   if (removeImage) formData.append('removeImage', 'true');
-
+ 
   const btn=document.getElementById('add-room-btn');
   btn.disabled=true; btn.textContent = editingRoomId ? 'Saving...' : 'Adding...';
   try {
@@ -614,7 +614,7 @@ async function doSaveRoom() {
   } catch(e){ err.textContent=e.message; err.style.display=''; }
   finally { btn.disabled=false; btn.textContent = editingRoomId ? 'Save changes' : 'List room'; }
 }
-
+ 
 // ── ENQUIRY ──
 function openEnquiry(roomId, title) {
   currentRoomId = roomId;
@@ -628,7 +628,7 @@ function openEnquiry(roomId, title) {
   document.getElementById('enquiry-modal').classList.remove('hidden');
 }
 function closeEnquiry(){ document.getElementById('enquiry-modal').classList.add('hidden'); }
-
+ 
 async function doEnquiry() {
   const msg = document.getElementById('enquiry-msg').value.trim();
   document.getElementById('enquiry-msg-err').style.display='none';
@@ -644,11 +644,11 @@ async function doEnquiry() {
   } catch(e){ document.getElementById('enquiry-error').textContent=e.message; document.getElementById('enquiry-error').style.display=''; }
   finally { btn.disabled=false; btn.textContent='Send'; }
 }
-
-
+ 
+ 
 // ── ENQUIRY EDIT / DELETE ──
 let editingEnquiryId = null;
-
+ 
 function openEditEnquiry(id, currentMsg) {
   editingEnquiryId = id;
   document.getElementById('edit-enq-msg').value = currentMsg;
@@ -659,13 +659,13 @@ function openEditEnquiry(id, currentMsg) {
 function closeEditEnquiry() {
   document.getElementById('edit-enq-modal').classList.add('hidden');
 }
-
+ 
 async function doEditEnquiry() {
   const message = document.getElementById('edit-enq-msg').value.trim();
   document.getElementById('edit-enq-error').style.display='none';
   document.getElementById('edit-enq-msg-err').style.display='none';
   if (message.length < 5) { setFieldError('edit-enq-msg-err','Message must be at least 5 characters'); return; }
-
+ 
   const btn = document.getElementById('edit-enq-btn');
   btn.disabled=true; btn.textContent='Saving...';
   try {
@@ -677,7 +677,7 @@ async function doEditEnquiry() {
     document.getElementById('edit-enq-error').style.display='';
   } finally { btn.disabled=false; btn.textContent='Save changes'; }
 }
-
+ 
 async function deleteEnquiry(id) {
   if (!confirm(t('deleteEnquiry'))) return;
   try {
@@ -685,7 +685,7 @@ async function deleteEnquiry(id) {
     loadTenantEnquiries();
   } catch(e) { alert(e.message); }
 }
-
+ 
 // ── REPLY ──
 function openReply(enquiryId, roomTitle, tenantName) {
   replyEnquiryId = enquiryId;
@@ -696,7 +696,7 @@ function openReply(enquiryId, roomTitle, tenantName) {
   document.getElementById('reply-modal').classList.remove('hidden');
 }
 function closeReply(){ document.getElementById('reply-modal').classList.add('hidden'); }
-
+ 
 async function doReply() {
   const msg = document.getElementById('reply-msg').value.trim();
   document.getElementById('reply-msg-err').style.display='none';
@@ -711,20 +711,29 @@ async function doReply() {
   } catch(e){ document.getElementById('reply-error').textContent=e.message; document.getElementById('reply-error').style.display=''; }
   finally { btn.disabled=false; btn.textContent='Send reply'; }
 }
-
+ 
 document.getElementById('add-room-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeAddRoom(); });
 document.getElementById('enquiry-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeEnquiry(); });
 document.getElementById('reply-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeReply(); });
-
+ 
+// Handle incoming page param (e.g. from landing page Pay Rent button)
+const urlParams = new URLSearchParams(window.location.search);
+const incomingPage = urlParams.get('page');
+if (incomingPage && user) {
+  showPage(incomingPage);
+} else if (incomingPage && !user) {
+  showPage('login');
+}
+ 
 updateNav();
 applyTranslations();
 // Apply saved language
 if (localStorage.getItem('lang')) { currentLang = localStorage.getItem('lang'); document.getElementById('lang-'+currentLang).classList.add('active'); if(currentLang!=='en') document.getElementById('lang-en').classList.remove('active'); }
 loadRooms();
-
+ 
 // ── MY RENTAL / PAYMENTS ──
 // MONTHS is now from i18n: t('months')
-
+ 
 async function loadMyRental() {
   const el = document.getElementById('my-rental-section');
   if (!el) return;
@@ -739,7 +748,7 @@ async function loadMyRental() {
     rentalPayments = data.payments;
     const year = new Date().getFullYear();
     const paidMonths = new Set(rentalPayments.map(p => p.month));
-
+ 
     let grid = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin:12px 0">';
     for (let m = 0; m < 12; m++) {
       const monthStr = `${year}-${String(m+1).padStart(2,'0')}`;
@@ -750,7 +759,7 @@ async function loadMyRental() {
       </button>`;
     }
     grid += '</div>';
-
+ 
     const history = rentalPayments.length
       ? '<div style="margin-top:1rem"><strong style="font-size:14px">Payment history</strong>' +
         rentalPayments.slice().reverse().map(p => `
@@ -758,30 +767,48 @@ async function loadMyRental() {
             <div class="row">
               <div>
                 <strong>${t('months')[parseInt(p.month.split('-')[1])-1]} ${p.month.split('-')[0]}</strong>
-                <div class="meta">'+t('paidLabel')+' £${p.amount} · '+t('cardEnding')+' ${p.cardLast4}</div>
+                <div class="meta">${t('paidLabel')} £${p.amount} · ${t('cardEnding')} ${p.cardLast4}</div>
                 <div class="meta">${new Date(p.paidAt).toLocaleDateString('en-GB')}</div>
               </div>
               <button class="btn btn-danger btn-sm" onclick="deletePayment('${p._id}')">Delete</button>
             </div>
           </div>`).join('') + '</div>'
       : '';
-
+ 
+    const totalPaid = rentalPayments.reduce((sum, p) => sum + p.amount, 0);
+    const paidCount = rentalPayments.length;
+    const unpaidCount = 12 - paidCount;
+ 
     el.innerHTML = `
-      <div class="card">
-        <div class="row">
+      <div class="card" style="border-left:4px solid #185FA5">
+        <div class="row" style="margin-bottom:1rem">
           <div>
-            <strong>${escapeHtml(data.room.title)}</strong>
-            <div class="meta">${escapeHtml(data.room.area)} · £${data.room.price}/mo</div>
+            <strong style="font-size:16px">${escapeHtml(data.room.title)}</strong>
+            <div class="meta" style="margin-top:4px">📍 ${escapeHtml(data.room.area)} · <strong>£${data.room.price}/mo</strong></div>
           </div>
           <button class="btn btn-outline btn-sm" onclick="showDetail('${data.room._id}')">View room</button>
         </div>
-        <p style="font-size:13px;color:#666;margin-top:10px">${year} '+t('rentTracker')+'</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:1rem">
+          <div style="background:#eaf3de;border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:#3B6D11">${paidCount}</div>
+            <div style="font-size:11px;color:#3B6D11;font-weight:600;margin-top:2px">PAID</div>
+          </div>
+          <div style="background:#fdecea;border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:#c0392b">${unpaidCount}</div>
+            <div style="font-size:11px;color:#c0392b;font-weight:600;margin-top:2px">UNPAID</div>
+          </div>
+          <div style="background:#EEF5FF;border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:#185FA5">£${totalPaid}</div>
+            <div style="font-size:11px;color:#185FA5;font-weight:600;margin-top:2px">TOTAL PAID</div>
+          </div>
+        </div>
+        <p style="font-size:13px;color:#666;margin-bottom:8px">${year} ${t('rentTracker')}</p>
         ${grid}
         ${history}
       </div>`;
   } catch(e) { el.innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
 }
-
+ 
 let payingMonth = null;
 function openPayRent(monthStr, label) {
   payingMonth = monthStr;
@@ -798,7 +825,7 @@ function closePayRent(){
   document.getElementById('pay-modal').classList.add('hidden');
   loadMyRental();
 }
-
+ 
 async function doPayRent() {
   const cardName = document.getElementById('pay-card-name').value.trim();
   const cardNumber = document.getElementById('pay-card-number').value.replace(/\s/g,'');
@@ -806,14 +833,14 @@ async function doPayRent() {
   const cvc = document.getElementById('pay-cvc').value.trim();
   document.getElementById('pay-error').style.display='none';
   clearFieldErrors(['pay-name-err','pay-number-err','pay-expiry-err','pay-cvc-err']);
-
+ 
   let valid = true;
   if (!cardName) { setFieldError('pay-name-err','Cardholder name is required'); valid=false; }
   if (!/^\d{12,19}$/.test(cardNumber)) { setFieldError('pay-number-err','Enter a valid card number (12-19 digits)'); valid=false; }
   if (!/^\d{2}\/\d{2}$/.test(expiry)) { setFieldError('pay-expiry-err','Format MM/YY'); valid=false; }
   if (!/^\d{3,4}$/.test(cvc)) { setFieldError('pay-cvc-err','3-4 digits'); valid=false; }
   if (!valid) return;
-
+ 
   const btn = document.getElementById('pay-btn');
   btn.disabled = true; btn.textContent = 'Processing...';
   try {
@@ -826,7 +853,7 @@ async function doPayRent() {
     document.getElementById('pay-error').style.display='';
   } finally { btn.disabled=false; btn.textContent='Pay now'; }
 }
-
+ 
 function formatCardNumber(input) {
   let v = input.value.replace(/\D/g,'').slice(0,19);
   input.value = v.replace(/(.{4})/g,'$1 ').trim();
@@ -836,7 +863,7 @@ function formatExpiry(input) {
   if (v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
   input.value = v;
 }
-
+ 
 async function deletePayment(id) {
   if (!confirm(t('deletePaymentConfirm'))) return;
   try {
