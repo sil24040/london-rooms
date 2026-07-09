@@ -43,4 +43,16 @@ function mapEnquiry(e) {
   };
 }
 
-module.exports = { uid, coordsForArea, mapRoom, mapEnquiry };
+// Map a DB booking row to the shape the frontend expects
+function mapBooking(b) {
+  return {
+    _id: b.id, roomId: b.room_id, roomTitle: b.room_title, roomArea: b.room_area, roomPrice: b.room_price,
+    tenantId: b.tenant_id, tenantName: b.tenant_name,
+    landlordId: b.landlord_id, landlordName: b.landlord_name,
+    message: b.message, status: b.status,
+    createdAt: new Date(b.created_at).getTime(),
+    updatedAt: new Date(b.updated_at).getTime()
+  };
+}
+
+module.exports = { uid, coordsForArea, mapRoom, mapEnquiry, mapBooking };
