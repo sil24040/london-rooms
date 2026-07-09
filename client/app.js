@@ -63,7 +63,7 @@ function updateNav() {
   document.getElementById('nav-dash').style.display = li ? '' : 'none';
   document.getElementById('nav-profile').style.display = li ? '' : 'none';
   document.getElementById('nav-user').textContent = li ? t('hi') + ', ' + user.name.split(' ')[0] : '';
-  document.getElementById('notif-wrap').style.display = li ? '' : 'none';
+  document.getElementById('notif-wrap').style.display = li ? 'block' : 'none';
   if (li) {
     loadNotifications();
     if (!notifPollInterval) notifPollInterval = setInterval(loadNotifications, 30000);
