@@ -2,19 +2,19 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 const { JWT_SECRET } = require('../middleware/auth');
- 
+
 async function register(req, res) {
   const { name, email, password, role } = req.body;
   if (!name || !email || !password)
     return res.status(400).json({ error: 'Name, email and password are required' });
   if (password.length < 8)
     return res.status(400).json({ error: 'Password must be at least 8 characters' });
- 
+
   try {
     const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
     if (existing.rows.length > 0)
       return res.status(409).json({ error: 'That email is already registered' });
- 
+
     const hashed = await bcrypt.hash(password, 10);
     const result = await pool.query(
       'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
@@ -28,18 +28,18 @@ async function register(req, res) {
     res.status(500).json({ error: 'Server error' });
   }
 }
- 
+
 async function login(req, res) {
   const { email, password } = req.body;
   if (!email || !password)
     return res.status(400).json({ error: 'Email and password are required' });
- 
+
   try {
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email.toLowerCase()]);
     const user = result.rows[0];
     if (!user || !(await bcrypt.compare(password, user.password)))
       return res.status(401).json({ error: 'Wrong email or password' });
- 
+
     const token = jwt.sign({ userId: user.id, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { _id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (e) {
@@ -47,7 +47,7 @@ async function login(req, res) {
     res.status(500).json({ error: 'Server error' });
   }
 }
- 
+
 async function me(req, res) {
   try {
     const result = await pool.query('SELECT id, name, email, role FROM users WHERE id = $1', [req.user.userId]);
@@ -59,23 +59,23 @@ async function me(req, res) {
     res.status(500).json({ error: 'Server error' });
   }
 }
- 
+
 async function updateProfile(req, res) {
   const { name, email, currentPassword, newPassword } = req.body;
   if (!name?.trim()) return res.status(400).json({ error: 'Name is required' });
   if (!email?.includes('@')) return res.status(400).json({ error: 'Valid email is required' });
- 
+
   try {
     const result = await pool.query('SELECT * FROM users WHERE id = $1', [req.user.userId]);
     const u = result.rows[0];
     if (!u) return res.status(404).json({ error: 'User not found' });
- 
+
     const emailLower = email.toLowerCase();
     if (emailLower !== u.email) {
       const existing = await pool.query('SELECT id FROM users WHERE email = $1', [emailLower]);
       if (existing.rows.length > 0) return res.status(409).json({ error: 'That email is already in use' });
     }
- 
+
     let hashedPw = u.password;
     if (newPassword) {
       if (!currentPassword) return res.status(400).json({ error: 'Enter your current password' });
@@ -84,11 +84,11 @@ async function updateProfile(req, res) {
       if (newPassword.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters' });
       hashedPw = await bcrypt.hash(newPassword, 10);
     }
- 
+
     await pool.query('UPDATE users SET name=$1, email=$2, password=$3 WHERE id=$4',
       [name.trim(), emailLower, hashedPw, req.user.userId]);
     await pool.query('UPDATE rooms SET landlord_name=$1 WHERE landlord_id=$2', [name.trim(), req.user.userId]);
- 
+
     const token = jwt.sign({ userId: u.id, name: name.trim(), role: u.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { _id: u.id, name: name.trim(), email: emailLower, role: u.role } });
   } catch (e) {
@@ -96,5 +96,51 @@ async function updateProfile(req, res) {
     res.status(500).json({ error: 'Server error' });
   }
 }
- 
-module.exports = { register, login, me, updateProfile };
+
+async function deleteAccount(req, res) {
+  const { password } = req.body;
+  if (!password) return res.status(400).json({ error: 'Enter your password to confirm account deletion' });
+
+  const client = await pool.connect();
+  try {
+    const userResult = await client.query('SELECT * FROM users WHERE id = $1', [req.user.userId]);
+    const u = userResult.rows[0];
+    if (!u) return res.status(404).json({ error: 'User not found' });
+    if (!(await bcrypt.compare(password, u.password)))
+      return res.status(401).json({ error: 'Incorrect password' });
+
+    await client.query('BEGIN');
+
+    if (u.role === 'landlord') {
+      const roomsResult = await client.query('SELECT id FROM rooms WHERE landlord_id = $1', [u.id]);
+      const roomIds = roomsResult.rows.map(r => r.id);
+
+      if (roomIds.length) {
+        await client.query('DELETE FROM payments WHERE room_id = ANY($1)', [roomIds]);
+        await client.query('DELETE FROM enquiries WHERE room_id = ANY($1)', [roomIds]);
+        await client.query('UPDATE users SET rental_room_id = NULL WHERE rental_room_id = ANY($1)', [roomIds]);
+      }
+      await client.query('DELETE FROM rooms WHERE landlord_id = $1', [u.id]);
+      await client.query('DELETE FROM enquiries WHERE landlord_id = $1', [u.id]);
+    } else {
+      await client.query('DELETE FROM payments WHERE tenant_id = $1', [u.id]);
+      await client.query('DELETE FROM enquiries WHERE tenant_id = $1', [u.id]);
+    }
+
+    // Remove this user from any room's saved_by list, regardless of role
+    await client.query('UPDATE rooms SET saved_by = array_remove(saved_by, $1) WHERE $1 = ANY(saved_by)', [u.id]);
+
+    await client.query('DELETE FROM users WHERE id = $1', [u.id]);
+    await client.query('COMMIT');
+
+    res.json({ message: 'Account deleted' });
+  } catch (e) {
+    await client.query('ROLLBACK');
+    console.error('DELETE /api/auth/account failed:', e);
+    res.status(500).json({ error: 'Server error' });
+  } finally {
+    client.release();
+  }
+}
+
+module.exports = { register, login, me, updateProfile, deleteAccount };

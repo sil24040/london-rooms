@@ -160,6 +160,37 @@ async function doUpdateProfile() {
   finally { btn.disabled=false; btn.textContent='Save changes'; }
 }
  
+// ── DELETE ACCOUNT ──
+function openDeleteAccount() {
+  document.getElementById('delete-account-pw').value = '';
+  document.getElementById('delete-account-error').style.display = 'none';
+  document.getElementById('delete-account-pw-err').style.display = 'none';
+  document.getElementById('delete-account-modal').classList.remove('hidden');
+}
+function closeDeleteAccount() {
+  document.getElementById('delete-account-modal').classList.add('hidden');
+}
+
+async function doDeleteAccount() {
+  const password = document.getElementById('delete-account-pw').value;
+  document.getElementById('delete-account-error').style.display = 'none';
+  document.getElementById('delete-account-pw-err').style.display = 'none';
+  if (!password) { setFieldError('delete-account-pw-err', 'Password is required'); return; }
+
+  const btn = document.getElementById('delete-account-btn');
+  btn.disabled = true; btn.textContent = 'Deleting...';
+  try {
+    await api('DELETE', '/auth/account', { password });
+    closeDeleteAccount();
+    logout();
+  } catch (e) {
+    document.getElementById('delete-account-error').textContent = e.message;
+    document.getElementById('delete-account-error').style.display = '';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Permanently delete my account';
+  }
+}
+ 
 // ── BROWSE / ROOMS ──
 function onFilterChange() { currentPage = 1; loadRooms(); }
  
@@ -907,4 +938,4 @@ async function deletePayment(id) {
     await api('DELETE','/rental/pay/'+id);
     loadMyRental();
   } catch(e) { alert(e.message); }
-}
+} 

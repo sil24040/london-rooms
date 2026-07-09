@@ -273,6 +273,11 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
       <div class="field-error" id="profile-pw-err" style="display:none"></div>
     </div>
     <button class="btn btn-primary" style="width:100%" id="profile-btn" onclick="doUpdateProfile()">Save changes</button>
+
+    <hr style="margin:1rem 0;border:none;border-top:1px solid #eee">
+    <p style="font-size:13px;color:#c0392b;font-weight:600;margin-bottom:6px">Danger zone</p>
+    <p style="font-size:12px;color:#666;margin-bottom:10px">Deleting your account is permanent. All your listings, enquiries, and payment history will be removed and cannot be recovered.</p>
+    <button class="btn btn-outline" style="width:100%;border-color:#c0392b;color:#c0392b" onclick="openDeleteAccount()">Delete my account</button>
   </div>
 </div>
 
@@ -451,6 +456,21 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     </div>
     <button class="btn btn-primary" style="width:100%" id="pay-btn" onclick="doPayRent()">Pay now</button>
     <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="closePayRent()">Close</button>
+  </div>
+</div>
+
+<div class="modal-bg hidden" id="delete-account-modal">
+  <div class="modal">
+    <h2 style="margin-bottom:0.5rem;color:#c0392b">Delete account</h2>
+    <p style="font-size:13px;color:#666;margin-bottom:1rem">This cannot be undone. Enter your password to confirm.</p>
+    <div id="delete-account-error" class="alert alert-error" style="display:none"></div>
+    <div class="field">
+      <label for="delete-account-pw">Password</label>
+      <input id="delete-account-pw" class="input" type="password">
+      <div class="field-error" id="delete-account-pw-err" style="display:none"></div>
+    </div>
+    <button class="btn btn-danger" style="width:100%" id="delete-account-btn" onclick="doDeleteAccount()">Permanently delete my account</button>
+    <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="closeDeleteAccount()">Cancel</button>
   </div>
 </div>
 
