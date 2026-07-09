@@ -11,6 +11,7 @@ const enquiriesRoutes = require('./routes/enquiries.routes');
 const rentalRoutes = require('./routes/rental.routes');
 const messagesRoutes = require('./routes/messages.routes');
 const bookingRoutes = require('./routes/booking.routes');
+const notificationRoutes = require('./routes/notification.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +33,7 @@ app.use('/api/rooms', roomsRoutes);
 app.use('/api/enquiries', enquiriesRoutes);
 app.use('/api/rental', rentalRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // ── MULTER / UPLOAD ERROR HANDLER ──
 app.use(uploadErrorHandler);

@@ -1,5 +1,5 @@
 const pool = require('../config/db');
-const { mapEnquiry } = require('../utils/helpers');
+const { mapEnquiry, notify } = require('../utils/helpers');
 
 async function createEnquiry(req, res) {
   if (req.user.role !== 'tenant') return res.status(403).json({ error: 'Only tenants can send enquiries' });
@@ -15,6 +15,9 @@ async function createEnquiry(req, res) {
       'INSERT INTO enquiries (room_id,room_title,room_area,room_price,tenant_id,tenant_name,landlord_id,landlord_name,message) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
       [r.id, r.title, r.area, r.price, req.user.userId, req.user.name, r.landlord_id, r.landlord_name, message.trim()]
     );
+
+    await notify(r.landlord_id, 'enquiry_received', `${req.user.name} sent an enquiry about "${r.title}"`, 'dashboard');
+
     res.status(201).json(mapEnquiry(result.rows[0]));
   } catch (e) {
     console.error('POST /api/enquiries/:roomId failed:', e);
@@ -33,7 +36,11 @@ async function replyEnquiry(req, res) {
       [reply.trim(), 'replied', req.params.id, req.user.userId]
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'Enquiry not found' });
-    res.json(mapEnquiry(result.rows[0]));
+    const e = result.rows[0];
+
+    await notify(e.tenant_id, 'enquiry_replied', `${e.landlord_name} replied to your enquiry about "${e.room_title}"`, 'dashboard');
+
+    res.json(mapEnquiry(e));
   } catch (e) {
     console.error('POST /api/enquiries/:id/reply failed:', e);
     res.status(500).json({ error: 'Server error' });

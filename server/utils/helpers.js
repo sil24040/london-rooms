@@ -1,3 +1,5 @@
+const pool = require('../config/db');
+
 // Generate a short unique id (used for room ids)
 function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -55,4 +57,26 @@ function mapBooking(b) {
   };
 }
 
-module.exports = { uid, coordsForArea, mapRoom, mapEnquiry, mapBooking };
+// Map a DB notification row to the shape the frontend expects
+function mapNotification(n) {
+  return {
+    _id: n.id, userId: n.user_id, type: n.type, message: n.message,
+    linkPage: n.link_page, read: n.read,
+    createdAt: new Date(n.created_at).getTime()
+  };
+}
+
+// Insert a notification for a user. Swallows errors so a notification failure
+// never breaks the primary action (e.g. sending an enquiry reply).
+async function notify(userId, type, message, linkPage) {
+  try {
+    await pool.query(
+      'INSERT INTO notifications (user_id, type, message, link_page) VALUES ($1,$2,$3,$4)',
+      [userId, type, message, linkPage || null]
+    );
+  } catch (e) {
+    console.error('notify() failed:', e);
+  }
+}
+
+module.exports = { uid, coordsForArea, mapRoom, mapEnquiry, mapBooking, mapNotification, notify };

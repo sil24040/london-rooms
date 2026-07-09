@@ -1,5 +1,5 @@
 const pool = require('../config/db');
-const { mapBooking } = require('../utils/helpers');
+const { mapBooking, notify } = require('../utils/helpers');
 
 async function createBooking(req, res) {
   if (req.user.role !== 'tenant') return res.status(403).json({ error: 'Only tenants can request bookings' });
@@ -21,6 +21,9 @@ async function createBooking(req, res) {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
       [r.id, r.title, r.area, r.price, req.user.userId, req.user.name, r.landlord_id, r.landlord_name, (message || '').trim() || null]
     );
+
+    await notify(r.landlord_id, 'booking_received', `${req.user.name} requested to book "${r.title}"`, 'dashboard');
+
     res.status(201).json(mapBooking(result.rows[0]));
   } catch (e) {
     console.error('POST /api/bookings/:roomId failed:', e);
@@ -63,14 +66,20 @@ async function approveBooking(req, res) {
     await client.query('BEGIN');
 
     await client.query("UPDATE bookings SET status='approved', updated_at=now() WHERE id=$1", [booking.id]);
-    await client.query(
-      "UPDATE bookings SET status='rejected', updated_at=now() WHERE room_id=$1 AND id!=$2 AND status='pending'",
+    const rejectedResult = await client.query(
+      "UPDATE bookings SET status='rejected', updated_at=now() WHERE room_id=$1 AND id!=$2 AND status='pending' RETURNING *",
       [booking.room_id, booking.id]
     );
     await client.query('UPDATE rooms SET available_now=false WHERE id=$1', [booking.room_id]);
     await client.query('UPDATE users SET rental_room_id=$1 WHERE id=$2', [booking.room_id, booking.tenant_id]);
 
     await client.query('COMMIT');
+
+    await notify(booking.tenant_id, 'booking_approved', `Your booking request for "${booking.room_title}" was approved!`, 'dashboard');
+    for (const rejected of rejectedResult.rows) {
+      await notify(rejected.tenant_id, 'booking_rejected', `Your booking request for "${rejected.room_title}" was rejected — the room was booked by someone else`, 'dashboard');
+    }
+
     res.json({ message: 'Booking approved' });
   } catch (e) {
     await client.query('ROLLBACK');
@@ -89,7 +98,11 @@ async function rejectBooking(req, res) {
       [req.params.id, req.user.userId]
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'Booking request not found or already handled' });
-    res.json(mapBooking(result.rows[0]));
+    const b = result.rows[0];
+
+    await notify(b.tenant_id, 'booking_rejected', `Your booking request for "${b.room_title}" was rejected`, 'dashboard');
+
+    res.json(mapBooking(b));
   } catch (e) {
     console.error('PUT /api/bookings/:id/reject failed:', e);
     res.status(500).json({ error: 'Server error' });
