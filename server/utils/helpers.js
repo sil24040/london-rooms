@@ -66,6 +66,17 @@ function mapNotification(n) {
   };
 }
 
+// Map a DB review row to the shape the frontend expects
+function mapReview(rv) {
+  return {
+    _id: rv.id, roomId: rv.room_id, roomTitle: rv.room_title,
+    tenantId: rv.tenant_id, tenantName: rv.tenant_name, landlordId: rv.landlord_id,
+    rating: rv.rating, comment: rv.comment,
+    createdAt: new Date(rv.created_at).getTime(),
+    updatedAt: new Date(rv.updated_at).getTime()
+  };
+}
+
 // Insert a notification for a user. Swallows errors so a notification failure
 // never breaks the primary action (e.g. sending an enquiry reply).
 async function notify(userId, type, message, linkPage) {
@@ -79,4 +90,4 @@ async function notify(userId, type, message, linkPage) {
   }
 }
 
-module.exports = { uid, coordsForArea, mapRoom, mapEnquiry, mapBooking, mapNotification, notify };
+module.exports = { uid, coordsForArea, mapRoom, mapEnquiry, mapBooking, mapNotification, mapReview, notify };
