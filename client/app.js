@@ -13,6 +13,7 @@ let editingRoomId = null;
 let replyEnquiryId = null;
 let myRentalRoomId = null;
 let rentalPayments = [];
+let bookingRoomId = null;
  
 async function api(method, path, body, isForm) {
   const opts = { method, headers: {} };
@@ -410,6 +411,7 @@ async function showDetail(id) {
         ${!user ? `<p style="margin:8px 0;color:#666">Sign in to send an enquiry</p><button class="btn btn-primary" style="width:100%" onclick="showPage('login')">Sign in</button>`
         : user.role==='landlord' ? `<p style="margin:8px 0;color:#666">You're viewing this as a landlord.</p>`
         : `<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openEnquiry('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Send enquiry</button>
+           <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openBooking('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Request to book</button>
            <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="setMyRental('${r._id}')">${myRentalRoomId===r._id ? t('thisIsMyRoom') : t('markAsMyRoom')}</button>`}
       </div>`;
  
@@ -456,19 +458,22 @@ async function loadDashboard() {
   if (user.role === 'landlord') {
     document.getElementById('tenant-dash').style.display='none';
     document.getElementById('landlord-dash').style.display='';
-    loadLandlordRooms(); loadLandlordEnquiries();
+    loadLandlordRooms(); loadLandlordEnquiries(); loadLandlordBookings();
   } else {
     document.getElementById('tenant-dash').style.display='';
     document.getElementById('landlord-dash').style.display='none';
     loadTenantEnquiries();
     loadMyRental();
+    loadMyBookings();
   }
 }
  
 function switchLandlordTab(tab) {
   document.getElementById('tab-listings').classList.toggle('active', tab==='listings');
+  document.getElementById('tab-bookings').classList.toggle('active', tab==='bookings');
   document.getElementById('tab-enquiries').classList.toggle('active', tab==='enquiries');
   document.getElementById('landlord-listings-tab').style.display = tab==='listings' ? '' : 'none';
+  document.getElementById('landlord-bookings-tab').style.display = tab==='bookings' ? '' : 'none';
   document.getElementById('landlord-enquiries-tab').style.display = tab==='enquiries' ? '' : 'none';
 }
  
@@ -938,4 +943,113 @@ async function deletePayment(id) {
     await api('DELETE','/rental/pay/'+id);
     loadMyRental();
   } catch(e) { alert(e.message); }
-} 
+}
+
+// ── BOOKINGS ──
+function openBooking(roomId, title) {
+  bookingRoomId = roomId;
+  document.getElementById('booking-room-title').textContent = title;
+  document.getElementById('booking-msg').value = '';
+  document.getElementById('booking-success').style.display = 'none';
+  document.getElementById('booking-error').style.display = 'none';
+  document.getElementById('booking-form-wrap').style.display = '';
+  document.getElementById('booking-btn').style.display = '';
+  document.getElementById('booking-modal').classList.remove('hidden');
+}
+function closeBooking() {
+  document.getElementById('booking-modal').classList.add('hidden');
+}
+
+async function doBooking() {
+  const message = document.getElementById('booking-msg').value.trim();
+  document.getElementById('booking-error').style.display = 'none';
+  const btn = document.getElementById('booking-btn');
+  btn.disabled = true; btn.textContent = 'Sending...';
+  try {
+    await api('POST', '/bookings/' + bookingRoomId, { message });
+    document.getElementById('booking-success').style.display = '';
+    document.getElementById('booking-form-wrap').style.display = 'none';
+    document.getElementById('booking-btn').style.display = 'none';
+  } catch (e) {
+    document.getElementById('booking-error').textContent = e.message;
+    document.getElementById('booking-error').style.display = '';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send request';
+  }
+}
+
+function bookingStatusBadge(status) {
+  const cls = status === 'approved' ? 'badge-approved' : status === 'rejected' ? 'badge-rejected' : 'badge-pending';
+  return `<span class="badge ${cls}">${status}</span>`;
+}
+
+async function loadMyBookings() {
+  const el = document.getElementById('my-bookings-section');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-wrap"><span class="spinner"></span></div>';
+  try {
+    const list = await api('GET', '/bookings/mine');
+    el.innerHTML = !list.length
+      ? '<div class="empty"><span class="icon">📋</span><p style="font-weight:600">No booking requests yet</p><p style="font-size:13px;margin-top:4px">Visit a room and tap "Request to book"</p></div>'
+      : list.map(b => `
+        <div class="card" style="margin-bottom:8px">
+          <div class="row">
+            <div>
+              <strong>${escapeHtml(b.roomTitle)}</strong>
+              <div class="meta">${escapeHtml(b.roomArea)} · £${b.roomPrice}/mo · To: ${escapeHtml(b.landlordName)}</div>
+              ${b.message ? `<div style="font-size:13px;margin:6px 0">"${escapeHtml(b.message)}"</div>` : ''}
+              <div class="meta">${new Date(b.createdAt).toLocaleDateString('en-GB')} · ${bookingStatusBadge(b.status)}</div>
+            </div>
+            ${b.status === 'pending' ? `<button class="btn btn-danger btn-sm" onclick="cancelBookingRequest('${b._id}')">Cancel</button>` : ''}
+          </div>
+        </div>`).join('');
+  } catch (e) { el.innerHTML = '<div class="alert alert-error">' + e.message + '</div>'; }
+}
+
+async function loadLandlordBookings() {
+  const el = document.getElementById('landlord-bookings');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-wrap"><span class="spinner"></span></div>';
+  try {
+    const list = await api('GET', '/bookings/received');
+    el.innerHTML = !list.length
+      ? '<div class="empty"><span class="icon">📋</span><p>No booking requests received yet</p></div>'
+      : list.map(b => `
+        <div class="card" style="margin-bottom:8px">
+          <strong>${escapeHtml(b.roomTitle)}</strong>
+          <div class="meta">From: ${escapeHtml(b.tenantName)}</div>
+          ${b.message ? `<div style="font-size:13px;margin:6px 0">"${escapeHtml(b.message)}"</div>` : ''}
+          <div class="meta">${new Date(b.createdAt).toLocaleDateString('en-GB')} · ${bookingStatusBadge(b.status)}</div>
+          ${b.status === 'pending' ? `
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <button class="btn btn-primary btn-sm" onclick="approveBookingRequest('${b._id}')">Approve</button>
+            <button class="btn btn-danger btn-sm" onclick="rejectBookingRequest('${b._id}')">Reject</button>
+          </div>` : ''}
+        </div>`).join('');
+  } catch (e) { el.innerHTML = '<div class="alert alert-error">' + e.message + '</div>'; }
+}
+
+async function approveBookingRequest(id) {
+  if (!confirm('Approve this booking? This will mark the room as unavailable and set it as the tenant\'s rental.')) return;
+  try {
+    await api('PUT', '/bookings/' + id + '/approve');
+    loadLandlordBookings();
+    loadLandlordRooms();
+  } catch (e) { alert(e.message); }
+}
+
+async function rejectBookingRequest(id) {
+  if (!confirm('Reject this booking request?')) return;
+  try {
+    await api('PUT', '/bookings/' + id + '/reject');
+    loadLandlordBookings();
+  } catch (e) { alert(e.message); }
+}
+
+async function cancelBookingRequest(id) {
+  if (!confirm('Cancel this booking request?')) return;
+  try {
+    await api('DELETE', '/bookings/' + id);
+    loadMyBookings();
+  } catch (e) { alert(e.message); }
+}

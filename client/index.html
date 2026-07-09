@@ -80,6 +80,9 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
 .badge{font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600}
 .badge-avail{background:#eaf3de;color:#3B6D11}
 .badge-replied{background:#E6F1FB;color:#185FA5}
+.badge-pending{background:#FFF4E0;color:#8a5a00}
+.badge-approved{background:#eaf3de;color:#3B6D11}
+.badge-rejected{background:#fdecea;color:#c0392b}
 #browse-map, #detail-map{height:380px;border-radius:12px;width:100%}
 .leaflet-popup-content{font-size:13px}
 .leaflet-popup-content b{font-size:14px}
@@ -92,7 +95,7 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
 .compare-table{width:100%;border-collapse:collapse;font-size:13px}
 .compare-table th, .compare-table td{border:1px solid #e0e0e0;padding:8px;text-align:left;vertical-align:top}
 .compare-table th{background:#f5f5f3;font-weight:600}
-.tabs{display:flex;gap:8px;border-bottom:1px solid #e0e0e0;margin-bottom:1rem}
+.tabs{display:flex;gap:8px;border-bottom:1px solid #e0e0e0;margin-bottom:1rem;flex-wrap:wrap}
 .tabs button{background:none;border:none;padding:8px 4px;font-size:14px;color:#666;cursor:pointer;border-bottom:2px solid transparent}
 .tabs button.active{color:#185FA5;border-bottom-color:#185FA5;font-weight:600}
 .img-preview{width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin-bottom:8px;display:none}
@@ -220,12 +223,15 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     <div id="tenant-dash" style="margin-top:0.5rem">
       <h2 style="font-size:16px;margin-bottom:8px">My rental</h2>
       <div id="my-rental-section" style="margin-bottom:1.5rem"></div>
+      <h2 style="font-size:16px;margin-bottom:8px">My bookings</h2>
+      <div id="my-bookings-section" style="margin-bottom:1.5rem"></div>
       <h2 style="font-size:16px;margin-bottom:8px">My enquiries</h2>
       <div id="tenant-enquiries"></div>
     </div>
     <div id="landlord-dash" style="display:none;margin-top:0.5rem">
       <div class="tabs">
         <button class="active" id="tab-listings" onclick="switchLandlordTab('listings')">My listings</button>
+        <button id="tab-bookings" onclick="switchLandlordTab('bookings')">Booking requests</button>
         <button id="tab-enquiries" onclick="switchLandlordTab('enquiries')">Received enquiries</button>
       </div>
       <div id="landlord-listings-tab">
@@ -234,6 +240,9 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
           <button class="btn btn-primary btn-sm" onclick="openAddRoom()">+ Add room</button>
         </div>
         <div id="landlord-rooms"></div>
+      </div>
+      <div id="landlord-bookings-tab" style="display:none">
+        <div id="landlord-bookings"></div>
       </div>
       <div id="landlord-enquiries-tab" style="display:none">
         <div id="landlord-enquiries"></div>
@@ -389,6 +398,21 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
     </div>
     <button class="btn btn-primary" style="width:100%" id="enquiry-btn" onclick="doEnquiry()">Send</button>
     <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="closeEnquiry()">Close</button>
+  </div>
+</div>
+
+<div class="modal-bg hidden" id="booking-modal">
+  <div class="modal">
+    <h2 style="margin-bottom:1rem">Request to book</h2>
+    <p id="booking-room-title" style="font-size:13px;color:#666;margin-bottom:10px"></p>
+    <div id="booking-success" class="alert alert-success" style="display:none">✓ Request sent! The landlord will review it.</div>
+    <div id="booking-error" class="alert alert-error" style="display:none"></div>
+    <div class="field" id="booking-form-wrap">
+      <label for="booking-msg">Message (optional)</label>
+      <textarea id="booking-msg" class="input" rows="4" placeholder="Anything you'd like the landlord to know?"></textarea>
+    </div>
+    <button class="btn btn-primary" style="width:100%" id="booking-btn" onclick="doBooking()">Send request</button>
+    <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="closeBooking()">Close</button>
   </div>
 </div>
 
