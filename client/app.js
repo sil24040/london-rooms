@@ -15,6 +15,10 @@ let myRentalRoomId = null;
 let rentalPayments = [];
 let bookingRoomId = null;
 let notifPollInterval = null;
+let reviewRoomId = null;
+let reviewRoomTitle = null;
+let selectedReviewRating = 0;
+let existingReviewId = null;
  
 async function api(method, path, body, isForm) {
   const opts = { method, headers: {} };
@@ -396,6 +400,7 @@ async function showDetail(id) {
   currentRoomId = id;
   showPage('detail');
   document.getElementById('detail-content').innerHTML = '<div class="loading-wrap"><span class="spinner"></span></div>';
+  document.getElementById('reviews-section').innerHTML = '';
   detailMap = null;
   if (user && user.role === 'tenant') {
     try {
@@ -433,6 +438,8 @@ async function showDetail(id) {
         detailMap.invalidateSize();
       }, 50);
     }
+
+    loadRoomReviews(r._id, r.title);
   } catch(e) { document.getElementById('detail-content').innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
 }
  
@@ -1125,5 +1132,120 @@ async function markAllNotificationsRead() {
   try {
     await api('PUT', '/notifications/read-all');
     loadNotifications();
+  } catch (e) { alert(e.message); }
+}
+
+// ── REVIEWS ──
+function renderStars(rating) {
+  let html = '<span class="stars">';
+  for (let i = 1; i <= 5; i++) {
+    html += i <= rating ? '★' : '<span class="empty-star">★</span>';
+  }
+  html += '</span>';
+  return html;
+}
+
+async function loadRoomReviews(roomId, roomTitle) {
+  const el = document.getElementById('reviews-section');
+  el.innerHTML = '<div class="loading-wrap"><span class="spinner"></span></div>';
+  try {
+    const res = await api('GET', '/reviews/room/' + roomId);
+    const canReview = user && user.role === 'tenant';
+
+    const summary = res.count
+      ? `<div class="review-summary"><span class="avg">${res.average}</span>${renderStars(Math.round(res.average))}<span style="color:#666;font-size:13px">(${res.count} review${res.count===1?'':'s'})</span></div>`
+      : `<p style="color:#666;font-size:13px;margin-bottom:1rem">No reviews yet</p>`;
+
+    const list = res.items.map(rv => `
+      <div class="review-item">
+        <div class="row">
+          <strong>${escapeHtml(rv.tenantName)}</strong>
+          <span style="font-size:12px;color:#999">${new Date(rv.createdAt).toLocaleDateString('en-GB')}</span>
+        </div>
+        ${renderStars(rv.rating)}
+        ${rv.comment ? `<p style="font-size:13px;margin-top:6px">${escapeHtml(rv.comment)}</p>` : ''}
+      </div>`).join('');
+
+    el.innerHTML = `
+      <div class="card">
+        ${summary}
+        ${canReview ? `<button class="btn btn-outline btn-sm" style="margin-bottom:1rem" onclick="openReviewModal('${roomId}','${escapeHtml(roomTitle).replace(/'/g,"\\'")}')">Write a review</button>` : ''}
+        ${list || ''}
+      </div>`;
+  } catch (e) {
+    el.innerHTML = '<div class="alert alert-error">' + e.message + '</div>';
+  }
+}
+
+async function openReviewModal(roomId, roomTitle) {
+  reviewRoomId = roomId;
+  reviewRoomTitle = roomTitle;
+  document.getElementById('review-room-title').textContent = roomTitle;
+  document.getElementById('review-error').style.display = 'none';
+  document.getElementById('review-comment').value = '';
+  selectedReviewRating = 0;
+  existingReviewId = null;
+  document.getElementById('review-modal-title').textContent = 'Write a review';
+  document.getElementById('review-delete-btn').style.display = 'none';
+  updateStarPicker(0);
+
+  try {
+    const mine = await api('GET', '/reviews/mine/' + roomId);
+    if (mine) {
+      existingReviewId = mine._id;
+      selectedReviewRating = mine.rating;
+      document.getElementById('review-comment').value = mine.comment || '';
+      document.getElementById('review-modal-title').textContent = 'Edit your review';
+      document.getElementById('review-delete-btn').style.display = '';
+      updateStarPicker(mine.rating);
+    }
+  } catch (e) { /* no existing review, ignore */ }
+
+  document.getElementById('review-modal').classList.remove('hidden');
+}
+function closeReviewModal() {
+  document.getElementById('review-modal').classList.add('hidden');
+}
+
+function updateStarPicker(rating) {
+  document.querySelectorAll('#review-star-picker span').forEach(el => {
+    el.classList.toggle('filled', Number(el.dataset.star) <= rating);
+  });
+}
+
+function selectReviewStar(n) {
+  selectedReviewRating = n;
+  updateStarPicker(n);
+}
+
+async function doSubmitReview() {
+  document.getElementById('review-error').style.display = 'none';
+  if (!selectedReviewRating) {
+    document.getElementById('review-error').textContent = 'Please select a star rating';
+    document.getElementById('review-error').style.display = '';
+    return;
+  }
+  const comment = document.getElementById('review-comment').value.trim();
+  const btn = document.getElementById('review-btn');
+  btn.disabled = true; btn.textContent = 'Submitting...';
+  try {
+    await api('POST', '/reviews/' + reviewRoomId, { rating: selectedReviewRating, comment });
+    closeReviewModal();
+    loadRoomReviews(reviewRoomId, reviewRoomTitle);
+  } catch (e) {
+    document.getElementById('review-error').textContent = e.message;
+    document.getElementById('review-error').style.display = '';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Submit review';
+  }
+}
+
+async function doDeleteReview() {
+  if (!existingReviewId) return;
+  if (!confirm('Delete your review?')) return;
+  try {
+    await api('DELETE', '/reviews/' + existingReviewId);
+    closeReviewModal();
+    loadRoomReviews(reviewRoomId, reviewRoomTitle);
   } catch (e) { alert(e.message); }
 }
