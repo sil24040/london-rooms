@@ -14,6 +14,7 @@ let replyEnquiryId = null;
 let myRentalRoomId = null;
 let rentalPayments = [];
 let bookingRoomId = null;
+let notifPollInterval = null;
  
 async function api(method, path, body, isForm) {
   const opts = { method, headers: {} };
@@ -58,6 +59,13 @@ function updateNav() {
   document.getElementById('nav-dash').style.display = li ? '' : 'none';
   document.getElementById('nav-profile').style.display = li ? '' : 'none';
   document.getElementById('nav-user').textContent = li ? t('hi') + ', ' + user.name.split(' ')[0] : '';
+  document.getElementById('notif-wrap').style.display = li ? '' : 'none';
+  if (li) {
+    loadNotifications();
+    if (!notifPollInterval) notifPollInterval = setInterval(loadNotifications, 30000);
+  } else {
+    if (notifPollInterval) { clearInterval(notifPollInterval); notifPollInterval = null; }
+  }
 }
  
 function saveAuth(d) {
@@ -751,6 +759,13 @@ async function doReply() {
 document.getElementById('add-room-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeAddRoom(); });
 document.getElementById('enquiry-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeEnquiry(); });
 document.getElementById('reply-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeReply(); });
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('notif-wrap');
+  const dropdown = document.getElementById('notif-dropdown');
+  if (wrap && !wrap.contains(e.target) && !dropdown.classList.contains('hidden')) {
+    dropdown.classList.add('hidden');
+  }
+});
  
 // Handle incoming page param (e.g. from landing page Pay Rent button)
 const urlParams = new URLSearchParams(window.location.search);
@@ -1051,5 +1066,64 @@ async function cancelBookingRequest(id) {
   try {
     await api('DELETE', '/bookings/' + id);
     loadMyBookings();
+  } catch (e) { alert(e.message); }
+}
+
+// ── NOTIFICATIONS ──
+function timeAgo(ts) {
+  const diffMs = Date.now() - ts;
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins + 'm ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ago';
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return days + 'd ago';
+  return new Date(ts).toLocaleDateString('en-GB');
+}
+
+function updateNotifBadge(count) {
+  const badge = document.getElementById('notif-badge');
+  if (count > 0) { badge.textContent = count > 9 ? '9+' : count; badge.style.display = ''; }
+  else { badge.style.display = 'none'; }
+}
+
+function renderNotifDropdown(items) {
+  const el = document.getElementById('notif-list');
+  el.innerHTML = !items.length
+    ? '<div class="notif-empty">No notifications yet</div>'
+    : items.map(n => `
+      <div class="notif-item ${n.read ? '' : 'unread'}" onclick="clickNotification('${n._id}','${n.linkPage || ''}')">
+        <div>${escapeHtml(n.message)}</div>
+        <div class="notif-time">${timeAgo(n.createdAt)}</div>
+      </div>`).join('');
+}
+
+async function loadNotifications() {
+  if (!user) return;
+  try {
+    const res = await api('GET', '/notifications');
+    renderNotifDropdown(res.items);
+    updateNotifBadge(res.unreadCount);
+  } catch (e) { /* fail silently — don't interrupt the UI for a background poll */ }
+}
+
+function toggleNotifDropdown() {
+  const dropdown = document.getElementById('notif-dropdown');
+  dropdown.classList.toggle('hidden');
+  if (!dropdown.classList.contains('hidden')) loadNotifications();
+}
+
+async function clickNotification(id, linkPage) {
+  try { await api('PUT', '/notifications/' + id + '/read'); } catch (e) { /* ignore */ }
+  loadNotifications();
+  document.getElementById('notif-dropdown').classList.add('hidden');
+  if (linkPage) showPage(linkPage);
+}
+
+async function markAllNotificationsRead() {
+  try {
+    await api('PUT', '/notifications/read-all');
+    loadNotifications();
   } catch (e) { alert(e.message); }
 }
