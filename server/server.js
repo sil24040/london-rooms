@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth.routes');
 const roomsRoutes = require('./routes/rooms.routes');
 const enquiriesRoutes = require('./routes/enquiries.routes');
 const rentalRoutes = require('./routes/rental.routes');
+const messagesRoutes = require('./routes/messages.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,7 @@ app.get('/', (req, res) => {
 app.use(express.static(path.join(__dirname, '../client')));
 
 // ── API ROUTES ──
+app.use('/api/enquiries', messagesRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomsRoutes);
 app.use('/api/enquiries', enquiriesRoutes);

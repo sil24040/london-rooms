@@ -747,19 +747,55 @@ async function loadMyRental() {
     myRentalRoomId = data.room._id;
     rentalPayments = data.payments;
     const year = new Date().getFullYear();
+    const today = new Date();
+    const currentMonthIndex = today.getMonth(); // 0-11
     const paidMonths = new Set(rentalPayments.map(p => p.month));
- 
+
+    // Due date = 1st of each month. Figure out days until/overdue for the current month.
+    const dueDay = 1;
+    const thisMonthStr = `${year}-${String(currentMonthIndex+1).padStart(2,'0')}`;
+    const thisMonthPaid = paidMonths.has(thisMonthStr);
+    const daysSinceDue = today.getDate() - dueDay;
+
+    let banner = '';
+    if (thisMonthPaid) {
+      banner = `<div style="background:#eaf3de;border-radius:10px;padding:12px 16px;margin-bottom:1rem;display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">✅</span>
+        <div><strong style="color:#3B6D11">${t('months')[currentMonthIndex]} rent paid</strong><div style="font-size:12px;color:#3B6D11">You're all caught up.</div></div>
+      </div>`;
+    } else if (daysSinceDue > 0) {
+      banner = `<div style="background:#fdecea;border-radius:10px;padding:12px 16px;margin-bottom:1rem;display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">⚠️</span>
+        <div><strong style="color:#c0392b">${t('months')[currentMonthIndex]} rent is overdue</strong><div style="font-size:12px;color:#c0392b">${daysSinceDue} day${daysSinceDue===1?'':'s'} past the due date (1st).</div></div>
+        <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="openPayRent('${thisMonthStr}','${t('months')[currentMonthIndex]} ${year}')">Pay now</button>
+      </div>`;
+    } else {
+      const daysUntil = -daysSinceDue;
+      banner = `<div style="background:#EEF5FF;border-radius:10px;padding:12px 16px;margin-bottom:1rem;display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">📅</span>
+        <div><strong style="color:#185FA5">${t('months')[currentMonthIndex]} rent due in ${daysUntil} day${daysUntil===1?'':'s'}</strong><div style="font-size:12px;color:#185FA5">Due on the 1st.</div></div>
+        <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openPayRent('${thisMonthStr}','${t('months')[currentMonthIndex]} ${year}')">Pay early</button>
+      </div>`;
+    }
+
     let grid = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin:12px 0">';
     for (let m = 0; m < 12; m++) {
       const monthStr = `${year}-${String(m+1).padStart(2,'0')}`;
       const paid = paidMonths.has(monthStr);
-      grid += `<button class="btn ${paid?'btn-primary':'btn-outline'} btn-sm" style="flex-direction:column;height:auto;padding:10px 6px" onclick="${paid?'':`openPayRent('${monthStr}','${t('months')[m]} ${year}')`}">
+      const isPast = m < currentMonthIndex;
+      const isCurrent = m === currentMonthIndex;
+      let statusLabel, btnClass;
+      if (paid) { statusLabel = t('paid'); btnClass = 'btn-primary'; }
+      else if (isPast) { statusLabel = 'Overdue'; btnClass = 'btn-danger'; }
+      else if (isCurrent) { statusLabel = 'Due now'; btnClass = 'btn-outline'; }
+      else { statusLabel = 'Upcoming'; btnClass = 'btn-outline'; }
+      grid += `<button class="btn ${btnClass} btn-sm" style="flex-direction:column;height:auto;padding:10px 6px" onclick="${paid?'':`openPayRent('${monthStr}','${t('months')[m]} ${year}')`}">
         <span>${t('months')[m]}</span>
-        <span style="font-size:11px">${paid ? t('paid') : t('unpaid')}</span>
+        <span style="font-size:11px">${statusLabel}</span>
       </button>`;
     }
     grid += '</div>';
- 
+
     const history = rentalPayments.length
       ? '<div style="margin-top:1rem"><strong style="font-size:14px">Payment history</strong>' +
         rentalPayments.slice().reverse().map(p => `
@@ -774,11 +810,11 @@ async function loadMyRental() {
             </div>
           </div>`).join('') + '</div>'
       : '';
- 
+
     const totalPaid = rentalPayments.reduce((sum, p) => sum + p.amount, 0);
     const paidCount = rentalPayments.length;
     const unpaidCount = 12 - paidCount;
- 
+
     el.innerHTML = `
       <div class="card" style="border-left:4px solid #185FA5">
         <div class="row" style="margin-bottom:1rem">
@@ -788,6 +824,7 @@ async function loadMyRental() {
           </div>
           <button class="btn btn-outline btn-sm" onclick="showDetail('${data.room._id}')">View room</button>
         </div>
+        ${banner}
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:1rem">
           <div style="background:#eaf3de;border-radius:10px;padding:12px;text-align:center">
             <div style="font-size:22px;font-weight:800;color:#3B6D11">${paidCount}</div>
@@ -802,7 +839,7 @@ async function loadMyRental() {
             <div style="font-size:11px;color:#185FA5;font-weight:600;margin-top:2px">TOTAL PAID</div>
           </div>
         </div>
-        <p style="font-size:13px;color:#666;margin-bottom:8px">${year} ${t('rentTracker')}</p>
+        <p style="font-size:13px;color:#666;margin-bottom:8px">${year} ${t('rentTracker')} · rent due the 1st of each month</p>
         ${grid}
         ${history}
       </div>`;
