@@ -107,6 +107,7 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
 .tabs button.active{color:#185FA5;border-bottom-color:#185FA5;font-weight:600}
 .img-preview{width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin-bottom:8px;display:none}
 .pagination{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:1.5rem;font-size:14px}
+.stripe-card-box{border:1px solid #ccc;border-radius:8px;padding:12px;background:#fff;min-height:44px}
 
 .notif-wrap{position:relative;display:none}
 .notif-bell{background:none;border:none;font-size:19px;cursor:pointer;padding:8px;position:relative;line-height:1;min-width:40px;min-height:40px}
@@ -535,22 +536,11 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
         <div class="field-error" id="pay-name-err" style="display:none"></div>
       </div>
       <div class="field">
-        <label for="pay-card-number">Card number</label>
-        <input id="pay-card-number" class="input" placeholder="4242 4242 4242 4242" oninput="formatCardNumber(this)" inputmode="numeric">
-        <div class="field-error" id="pay-number-err" style="display:none"></div>
+        <label for="stripe-card-element">Card details</label>
+        <div id="stripe-card-element" class="stripe-card-box" aria-label="Stripe secure card input"></div>
+        <div class="field-error" id="pay-card-err" style="display:none"></div>
       </div>
-      <div class="row">
-        <div class="field" style="flex:1">
-          <label for="pay-expiry">Expiry</label>
-          <input id="pay-expiry" class="input" placeholder="MM/YY" oninput="formatExpiry(this)" inputmode="numeric">
-          <div class="field-error" id="pay-expiry-err" style="display:none"></div>
-        </div>
-        <div class="field" style="flex:1">
-          <label for="pay-cvc">CVC</label>
-          <input id="pay-cvc" class="input" placeholder="123" maxlength="4" inputmode="numeric">
-          <div class="field-error" id="pay-cvc-err" style="display:none"></div>
-        </div>
-      </div>
+      <p id="pay-provider-note" style="font-size:12px;color:#666;margin-bottom:10px">Stripe test mode only. Use card 4242 4242 4242 4242 with any future expiry and CVC.</p>
       <p style="font-size:12px;color:#999;margin-bottom:10px">This is a demo — no real payment is processed.</p>
     </div>
     <button class="btn btn-primary" style="width:100%" type="button" id="pay-btn" onclick="doPayRent()">Pay now</button>

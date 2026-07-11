@@ -17,6 +17,8 @@ https://crystalclearliving.solutions/
 - Database: PostgreSQL, hosted on Supabase
 - Authentication: application-managed users, bcrypt password hashing, JWT sessions
 - File uploads: Multer, stored under `client/uploads`
+- Payments API: Stripe Payment Intents in test mode
+- Messaging API: Resend transactional email
 - Maps: Leaflet, lazy-loaded only when map views are opened
 - Hosting target: Render
 
@@ -34,6 +36,8 @@ https://crystalclearliving.solutions/
 - Booking requests with approve, reject, and cancel workflows
 - Approved bookings can mark a room unavailable and set the tenant rental
 - Tenant rent tracker with demo card payment recording
+- Stripe test-mode rent payments
+- Resend email notifications for enquiries, messages, bookings, and payment receipts
 - In-app notifications for enquiries and bookings
 - Room reviews from eligible tenants
 - Profile updates, password changes, and account deletion
@@ -92,9 +96,18 @@ Create `server/.env`:
 PORT=3000
 DATABASE_URL=postgresql://user:password@host:5432/database
 JWT_SECRET=replace-with-a-long-random-secret
+STRIPE_SECRET_KEY=sk_test_your_key
+STRIPE_PUBLISHABLE_KEY=pk_test_your_key
+RESEND_API_KEY=re_your_key
+EMAIL_FROM=LondonRooms <onboarding@resend.dev>
 ```
 
 `DATABASE_URL` is required for the PostgreSQL connection. In this project it points to Supabase PostgreSQL. `JWT_SECRET` is optional in development, but should always be set in production.
+
+Stripe and Resend keys are optional while developing, but the advanced API features need them:
+
+- Stripe keys must be test-mode keys.
+- Resend can use `onboarding@resend.dev` for early testing, or a verified domain sender.
 
 ## Running Locally
 

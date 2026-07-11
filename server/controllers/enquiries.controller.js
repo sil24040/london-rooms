@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const { mapEnquiry, notify } = require('../utils/helpers');
+const { sendEmail } = require('../utils/email');
 
 async function createEnquiry(req, res) {
   if (req.user.role !== 'tenant') return res.status(403).json({ error: 'Only tenants can send enquiries' });
@@ -17,6 +18,12 @@ async function createEnquiry(req, res) {
     );
 
     await notify(r.landlord_id, 'enquiry_received', `${req.user.name} sent an enquiry about "${r.title}"`, 'dashboard');
+    const landlord = await pool.query('SELECT email FROM users WHERE id=$1', [r.landlord_id]);
+    await sendEmail({
+      to: landlord.rows[0]?.email,
+      subject: `New enquiry for ${r.title}`,
+      text: `${req.user.name} sent an enquiry about "${r.title}":\n\n${message.trim()}`
+    });
 
     res.status(201).json(mapEnquiry(result.rows[0]));
   } catch (e) {
@@ -39,6 +46,12 @@ async function replyEnquiry(req, res) {
     const e = result.rows[0];
 
     await notify(e.tenant_id, 'enquiry_replied', `${e.landlord_name} replied to your enquiry about "${e.room_title}"`, 'dashboard');
+    const tenant = await pool.query('SELECT email FROM users WHERE id=$1', [e.tenant_id]);
+    await sendEmail({
+      to: tenant.rows[0]?.email,
+      subject: `Reply about ${e.room_title}`,
+      text: `${e.landlord_name} replied to your enquiry about "${e.room_title}":\n\n${reply.trim()}`
+    });
 
     res.json(mapEnquiry(e));
   } catch (e) {

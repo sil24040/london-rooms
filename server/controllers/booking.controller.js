@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const { mapBooking, notify } = require('../utils/helpers');
+const { sendEmail } = require('../utils/email');
 
 async function createBooking(req, res) {
   if (req.user.role !== 'tenant') return res.status(403).json({ error: 'Only tenants can request bookings' });
@@ -23,6 +24,12 @@ async function createBooking(req, res) {
     );
 
     await notify(r.landlord_id, 'booking_received', `${req.user.name} requested to book "${r.title}"`, 'dashboard');
+    const landlord = await pool.query('SELECT email FROM users WHERE id=$1', [r.landlord_id]);
+    await sendEmail({
+      to: landlord.rows[0]?.email,
+      subject: `New booking request for ${r.title}`,
+      text: `${req.user.name} requested to book "${r.title}".\n\n${(message || '').trim() || 'No message provided.'}`
+    });
 
     res.status(201).json(mapBooking(result.rows[0]));
   } catch (e) {
@@ -76,8 +83,20 @@ async function approveBooking(req, res) {
     await client.query('COMMIT');
 
     await notify(booking.tenant_id, 'booking_approved', `Your booking request for "${booking.room_title}" was approved!`, 'dashboard');
+    const approvedTenant = await pool.query('SELECT email FROM users WHERE id=$1', [booking.tenant_id]);
+    await sendEmail({
+      to: approvedTenant.rows[0]?.email,
+      subject: `Booking approved: ${booking.room_title}`,
+      text: `Good news. Your booking request for "${booking.room_title}" was approved.`
+    });
     for (const rejected of rejectedResult.rows) {
-      await notify(rejected.tenant_id, 'booking_rejected', `Your booking request for "${rejected.room_title}" was rejected — the room was booked by someone else`, 'dashboard');
+      await notify(rejected.tenant_id, 'booking_rejected', `Your booking request for "${rejected.room_title}" was rejected - the room was booked by someone else`, 'dashboard');
+      const rejectedTenant = await pool.query('SELECT email FROM users WHERE id=$1', [rejected.tenant_id]);
+      await sendEmail({
+        to: rejectedTenant.rows[0]?.email,
+        subject: `Booking update: ${rejected.room_title}`,
+        text: `Your booking request for "${rejected.room_title}" was rejected because the room was booked by another tenant.`
+      });
     }
 
     res.json({ message: 'Booking approved' });
@@ -101,6 +120,12 @@ async function rejectBooking(req, res) {
     const b = result.rows[0];
 
     await notify(b.tenant_id, 'booking_rejected', `Your booking request for "${b.room_title}" was rejected`, 'dashboard');
+    const tenant = await pool.query('SELECT email FROM users WHERE id=$1', [b.tenant_id]);
+    await sendEmail({
+      to: tenant.rows[0]?.email,
+      subject: `Booking rejected: ${b.room_title}`,
+      text: `Your booking request for "${b.room_title}" was rejected.`
+    });
 
     res.json(mapBooking(b));
   } catch (e) {

@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { sendEmail } = require('../utils/email');
 
 async function getMessages(req, res) {
   const { id } = req.params;
@@ -35,6 +36,13 @@ async function sendMessage(req, res) {
     if (req.user.role === 'landlord') {
       await pool.query("UPDATE enquiries SET status='replied' WHERE id=$1", [id]);
     }
+    const recipientId = req.user.role === 'landlord' ? e.tenant_id : e.landlord_id;
+    const recipient = await pool.query('SELECT email FROM users WHERE id=$1', [recipientId]);
+    await sendEmail({
+      to: recipient.rows[0]?.email,
+      subject: `New message about ${e.room_title}`,
+      text: `${req.user.name} sent a message about "${e.room_title}":\n\n${body.trim()}`
+    });
     res.status(201).json(mapMessage(result.rows[0]));
   } catch (e) {
     res.status(500).json({ error: 'Server error' });

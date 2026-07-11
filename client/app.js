@@ -993,16 +993,75 @@ async function loadMyRental() {
 }
  
 let payingMonth = null;
+let stripeClient = null;
+let stripeElements = null;
+let stripeCard = null;
+let stripeConfigPromise = null;
+
+function loadScriptOnce(src) {
+  const existing = document.querySelector(`script[src="${src}"]`);
+  if (existing) return existing.dataset.loaded ? Promise.resolve() : new Promise((resolve, reject) => {
+    existing.addEventListener('load', resolve, { once: true });
+    existing.addEventListener('error', reject, { once: true });
+  });
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.onload = () => { script.dataset.loaded = 'true'; resolve(); };
+    script.onerror = () => reject(new Error('Could not load Stripe.js'));
+    document.head.appendChild(script);
+  });
+}
+
+async function getStripeConfig() {
+  if (!stripeConfigPromise) stripeConfigPromise = api('GET', '/rental/payment-config');
+  return stripeConfigPromise;
+}
+
+async function setupStripeCard() {
+  const err = document.getElementById('pay-card-err');
+  err.style.display = 'none';
+  err.textContent = '';
+  try {
+    const config = await getStripeConfig();
+    if (!config.stripeEnabled || !config.publishableKey) {
+      throw new Error('Stripe test payments are not configured yet.');
+    }
+    await loadScriptOnce('https://js.stripe.com/v3/');
+    stripeClient = stripeClient || Stripe(config.publishableKey);
+    stripeElements = stripeClient.elements();
+    if (stripeCard) stripeCard.destroy();
+    stripeCard = stripeElements.create('card', {
+      hidePostalCode: true,
+      style: {
+        base: { fontSize: '14px', color: '#1a1a1a', fontFamily: '-apple-system, sans-serif' },
+        invalid: { color: '#c0392b' }
+      }
+    });
+    stripeCard.mount('#stripe-card-element');
+    stripeCard.on('change', event => {
+      err.textContent = event.error ? event.error.message : '';
+      err.style.display = event.error ? '' : 'none';
+    });
+  } catch (e) {
+    err.textContent = e.message;
+    err.style.display = '';
+  }
+}
+
 function openPayRent(monthStr, label) {
   payingMonth = monthStr;
   document.getElementById('pay-month-label').textContent = label;
   document.getElementById('pay-error').style.display='none';
-  ['pay-card-name','pay-card-number','pay-expiry','pay-cvc'].forEach(id => document.getElementById(id).value='');
-  clearFieldErrors(['pay-name-err','pay-number-err','pay-expiry-err','pay-cvc-err']);
+  document.getElementById('pay-card-name').value='';
+  clearFieldErrors(['pay-name-err','pay-card-err']);
   document.getElementById('pay-success').style.display='none';
   document.getElementById('pay-form-wrap').style.display='';
   document.getElementById('pay-btn').style.display='';
   openModal('pay-modal');
+  setupStripeCard();
 }
 function closePayRent(){
   closeModal('pay-modal');
@@ -1011,23 +1070,26 @@ function closePayRent(){
  
 async function doPayRent() {
   const cardName = document.getElementById('pay-card-name').value.trim();
-  const cardNumber = document.getElementById('pay-card-number').value.replace(/\s/g,'');
-  const expiry = document.getElementById('pay-expiry').value.trim();
-  const cvc = document.getElementById('pay-cvc').value.trim();
   document.getElementById('pay-error').style.display='none';
-  clearFieldErrors(['pay-name-err','pay-number-err','pay-expiry-err','pay-cvc-err']);
+  clearFieldErrors(['pay-name-err','pay-card-err']);
  
   let valid = true;
   if (!cardName) { setFieldError('pay-name-err','Cardholder name is required'); valid=false; }
-  if (!/^\d{12,19}$/.test(cardNumber)) { setFieldError('pay-number-err','Enter a valid card number (12-19 digits)'); valid=false; }
-  if (!/^\d{2}\/\d{2}$/.test(expiry)) { setFieldError('pay-expiry-err','Format MM/YY'); valid=false; }
-  if (!/^\d{3,4}$/.test(cvc)) { setFieldError('pay-cvc-err','3-4 digits'); valid=false; }
+  if (!stripeClient || !stripeCard) { setFieldError('pay-card-err','Secure card form is not ready yet'); valid=false; }
   if (!valid) return;
  
   const btn = document.getElementById('pay-btn');
   btn.disabled = true; btn.textContent = 'Processing...';
   try {
-    await api('POST','/rental/pay',{month:payingMonth, cardName, cardNumber, expiry, cvc});
+    const intent = await api('POST','/rental/pay/intent',{month:payingMonth});
+    const result = await stripeClient.confirmCardPayment(intent.clientSecret, {
+      payment_method: {
+        card: stripeCard,
+        billing_details: { name: cardName }
+      }
+    });
+    if (result.error) throw new Error(result.error.message);
+    await api('POST','/rental/pay/confirm',{month:payingMonth, paymentIntentId: result.paymentIntent.id});
     document.getElementById('pay-success').style.display='';
     document.getElementById('pay-form-wrap').style.display='none';
     document.getElementById('pay-btn').style.display='none';
@@ -1035,16 +1097,6 @@ async function doPayRent() {
     document.getElementById('pay-error').textContent = e.message;
     document.getElementById('pay-error').style.display='';
   } finally { btn.disabled=false; btn.textContent='Pay now'; }
-}
- 
-function formatCardNumber(input) {
-  let v = input.value.replace(/\D/g,'').slice(0,19);
-  input.value = v.replace(/(.{4})/g,'$1 ').trim();
-}
-function formatExpiry(input) {
-  let v = input.value.replace(/\D/g,'').slice(0,4);
-  if (v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
-  input.value = v;
 }
  
 async function deletePayment(id) {

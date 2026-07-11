@@ -356,23 +356,54 @@ Use `null` or omit `roomId` to clear the rental.
 
 Protected tenant endpoint. Returns the current rental room and payment records.
 
-### POST `/api/rental/pay`
+### GET `/api/rental/payment-config`
 
-Protected tenant endpoint. Records a demo rent payment for the current rental room.
+Protected tenant endpoint. Returns whether Stripe test payments are configured and the publishable key needed by Stripe.js.
+
+```json
+{
+  "stripeEnabled": true,
+  "publishableKey": "pk_test_..."
+}
+```
+
+### POST `/api/rental/pay/intent`
+
+Protected tenant endpoint. Creates a Stripe test-mode PaymentIntent for the selected rental month.
+
+Body:
+
+```json
+{
+  "month": "2026-07"
+}
+```
+
+Response:
+
+```json
+{
+  "clientSecret": "pi_..._secret_...",
+  "paymentIntentId": "pi_...",
+  "amount": 75000,
+  "currency": "gbp"
+}
+```
+
+### POST `/api/rental/pay/confirm`
+
+Protected tenant endpoint. Confirms that Stripe marked the PaymentIntent as succeeded, validates that it belongs to the current tenant, room, and month, then records the payment in the database.
 
 Body:
 
 ```json
 {
   "month": "2026-07",
-  "cardName": "Jane Tenant",
-  "cardNumber": "4242424242424242",
-  "expiry": "12/30",
-  "cvc": "123"
+  "paymentIntentId": "pi_..."
 }
 ```
 
-This does not process real payments. It records the room price and card last four digits.
+Stripe is used in test mode for this school project. The application does not store full card numbers.
 
 ### DELETE `/api/rental/pay/:id`
 

@@ -36,9 +36,15 @@ Create `server/.env`:
 PORT=3000
 DATABASE_URL=postgresql://user:password@host:5432/database
 JWT_SECRET=replace-with-a-long-random-secret
+STRIPE_SECRET_KEY=sk_test_your_key
+STRIPE_PUBLISHABLE_KEY=pk_test_your_key
+RESEND_API_KEY=re_your_key
+EMAIL_FROM=LondonRooms <onboarding@resend.dev>
 ```
 
 `DATABASE_URL` should point to the Supabase-hosted PostgreSQL database.
+
+Stripe must use test-mode keys for this school project. Resend can use its free tier; for quick testing, use the Resend-provided onboarding sender or configure a verified domain.
 
 ### Start the App
 
@@ -98,6 +104,10 @@ Required production environment variables:
 
 - `DATABASE_URL`
 - `JWT_SECRET`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_PUBLISHABLE_KEY`
+- `RESEND_API_KEY`
+- `EMAIL_FROM`
 - `PORT`, if the host does not inject one automatically
 
 ## Static Files and Uploads

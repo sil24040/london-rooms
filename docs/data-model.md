@@ -142,7 +142,7 @@ Stores booking requests.
 
 ### `payments`
 
-Stores demo rent tracker payments.
+Stores rent tracker payments after Stripe test-mode confirmation.
 
 | Column | Purpose |
 | --- | --- |

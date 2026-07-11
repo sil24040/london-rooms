@@ -66,6 +66,8 @@ Responsibilities:
 - Hash passwords with bcrypt
 - Store and validate uploaded room images with Multer
 - Query Supabase PostgreSQL directly through the `pg` connection pool
+- Create Stripe test-mode PaymentIntents for rent payments
+- Send transactional email through Resend when notification-worthy events happen
 - Send notification records after key actions
 - Return consistent JSON error objects
 
@@ -114,6 +116,26 @@ Example booking approval flow:
 2. Landlord sees the request under received bookings.
 3. Landlord approves with `PUT /api/bookings/:id/approve`.
 4. The backend marks the booking approved, rejects other pending requests for that room, marks the room unavailable, sets the tenant's rental room, and creates notifications.
+
+## Third-Party API Integrations
+
+### Stripe
+
+Stripe is used in test mode for rent payments. The frontend loads Stripe.js when the rent modal opens, collects card details through Stripe Elements, confirms the PaymentIntent, and then asks the backend to record the payment. Card details are not stored by LondonRooms.
+
+Required environment variables:
+
+- `STRIPE_SECRET_KEY`
+- `STRIPE_PUBLISHABLE_KEY`
+
+### Resend
+
+Resend is used for transactional email notifications. The app attempts to send email for enquiries, threaded messages, booking requests, booking decisions, and successful rent payments. Email failures are logged but do not block the main application action.
+
+Required environment variables:
+
+- `RESEND_API_KEY`
+- `EMAIL_FROM`
 
 ## Files and Uploads
 
