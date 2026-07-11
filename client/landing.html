@@ -6,119 +6,7 @@
 <title>LondonRooms — Rooms to Rent Across London</title>
 <meta name="description" content="Quality rooms to rent across London. Private landlord, no agency fees. View our available rooms and get in touch today.">
 <meta name="theme-color" content="#0C447C">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,'Segoe UI',sans-serif;color:#1a1a1a;overflow-x:hidden}
-a{text-decoration:none;color:inherit}
-a:focus-visible{outline:3px solid #7DD3FC;outline-offset:3px}
-.skip-link{position:absolute;left:1rem;top:-48px;background:#fff;color:#0C447C;padding:10px 14px;border-radius:8px;z-index:2000;font-weight:700;box-shadow:0 4px 18px rgba(0,0,0,.18)}
-.skip-link:focus{top:1rem}
-
-/* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;transition:background .3s,box-shadow .3s}
-nav.scrolled{background:#fff;box-shadow:0 1px 12px rgba(0,0,0,.08)}
-.nav-logo{font-size:20px;font-weight:800;color:#fff;letter-spacing:-.5px}
-nav.scrolled .nav-logo{color:#185FA5}
-.nav-logo span{color:rgba(255,255,255,.7)}
-nav.scrolled .nav-logo span{color:#1a1a1a}
-nav.scrolled #nav-payrent{border-color:#185FA5;color:#185FA5}
-nav.scrolled .nav-links .btn-outline-white{border-color:#185FA5;color:#185FA5;background:#fff}
-nav.scrolled .nav-links .btn-outline-white:hover{background:#EEF5FF}
-.nav-links{display:flex;gap:8px;align-items:center}
-.btn{display:inline-block;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;min-height:40px}
-.btn-white{background:#fff;color:#185FA5}
-.btn-white:hover{background:#f0f0f0}
-.btn-outline-white{background:transparent;border:2px solid rgba(255,255,255,.6);color:#fff}
-.btn-outline-white:hover{background:rgba(255,255,255,.1)}
-.btn-primary{background:#185FA5;color:#fff}
-.btn-primary:hover{background:#0e4a85}
-.btn-green{background:#22C55E;color:#fff}
-.btn-green:hover{background:#16A34A}
-.btn-lg{padding:14px 32px;font-size:16px;border-radius:12px}
-.btn-xl{padding:18px 40px;font-size:18px;border-radius:14px}
-
-/* HERO */
-.hero{min-height:100vh;background:linear-gradient(135deg,#0C447C 0%,#185FA5 40%,#1a7fc4 100%);display:flex;align-items:center;justify-content:center;text-align:center;padding:6rem 1rem 4rem;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
-.hero-badge{display:inline-block;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);color:#fff;padding:8px 20px;border-radius:50px;font-size:13px;font-weight:600;margin-bottom:1.5rem;letter-spacing:.5px}
-.hero h1{font-size:clamp(36px,7vw,72px);font-weight:900;color:#fff;line-height:1.1;margin-bottom:1.5rem;letter-spacing:-2px}
-.hero h1 span{color:#7DD3FC}
-.hero p{font-size:clamp(16px,2.5vw,20px);color:rgba(255,255,255,.85);max-width:560px;margin:0 auto 2.5rem;line-height:1.7}
-.hero-ctas{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:3rem}
-.hero-trust{display:flex;gap:2rem;justify-content:center;flex-wrap:wrap}
-.trust-item{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.75);font-size:14px}
-.trust-item span{font-size:20px}
-.hero-scroll{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.5);font-size:12px;display:flex;flex-direction:column;align-items:center;gap:8px;animation:bounce 2s infinite}
-@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-6px)}}
-
-/* WHY US */
-.section{padding:6rem 1rem}
-.section-inner{max-width:1100px;margin:0 auto}
-.section-tag{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#185FA5;margin-bottom:12px}
-.section-title{font-size:clamp(28px,5vw,48px);font-weight:800;letter-spacing:-1px;margin-bottom:1rem;line-height:1.15}
-.section-sub{font-size:18px;color:#666;max-width:520px;line-height:1.6}
-.why-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;margin-top:3rem}
-.why-card{background:#fff;border:1px solid #eee;border-radius:16px;padding:2rem;transition:transform .2s,box-shadow .2s}
-.why-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.08)}
-.why-icon{font-size:36px;margin-bottom:1rem}
-.why-card h3{font-size:17px;font-weight:700;margin-bottom:8px}
-.why-card p{font-size:14px;color:#666;line-height:1.6}
-
-/* ROOMS PREVIEW */
-.rooms-bg{background:#f8f8f6}
-.rooms-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;margin-top:3rem}
-.room-card{background:#fff;border-radius:16px;overflow:hidden;border:1px solid #eee;transition:transform .2s,box-shadow .2s}
-.room-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.1)}
-.room-img{height:200px;background:linear-gradient(135deg,#185FA5,#7DD3FC);display:flex;align-items:center;justify-content:center;font-size:60px}
-.room-body{padding:1.5rem}
-.room-price{font-size:24px;font-weight:800;color:#185FA5;margin-bottom:4px}
-.room-price span{font-size:14px;font-weight:400;color:#999}
-.room-title{font-size:16px;font-weight:700;margin-bottom:4px}
-.room-area{font-size:13px;color:#666;margin-bottom:12px}
-.room-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
-.tag{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:600;background:#EEF5FF;color:#185FA5}
-.tag.green{background:#ECFDF5;color:#16A34A}
-.view-all{text-align:center;margin-top:2.5rem}
-
-/* AREAS */
-.areas{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:2.5rem}
-.area-pill{background:#fff;border:1px solid #e0e0e0;border-radius:50px;padding:10px 16px;text-align:center;font-size:14px;font-weight:500;transition:all .2s}
-.area-pill:hover{background:#185FA5;color:#fff;border-color:#185FA5}
-
-/* CONTACT */
-.contact-section{background:linear-gradient(135deg,#0C447C,#185FA5);padding:6rem 1rem}
-.contact-inner{max-width:800px;margin:0 auto;text-align:center}
-.contact-inner h2{font-size:clamp(28px,5vw,48px);font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:1rem}
-.contact-inner p{font-size:18px;color:rgba(255,255,255,.8);margin-bottom:3rem;line-height:1.6}
-.contact-cards{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:560px;margin:0 auto}
-.contact-card{background:rgba(255,255,255,.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:2rem;text-align:center;transition:background .2s}
-.contact-card:hover{background:rgba(255,255,255,.2)}
-.contact-card-icon{font-size:36px;margin-bottom:1rem}
-.contact-card h3{font-size:16px;font-weight:700;color:#fff;margin-bottom:6px}
-.contact-card p{font-size:13px;color:rgba(255,255,255,.7);margin-bottom:1.2rem}
-.btn-contact-white{background:#fff;color:#185FA5;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;display:inline-block;transition:all .2s}
-.btn-contact-white:hover{background:#f0f0f0}
-.btn-contact-green{background:#22C55E;color:#fff;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;display:inline-block;transition:all .2s}
-.btn-contact-green:hover{background:#16A34A}
-
-/* FOOTER */
-footer{background:#111;color:#fff;padding:3rem 2rem 2rem}
-.footer-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
-.footer-logo{font-size:20px;font-weight:800}
-.footer-logo span{color:#7DD3FC}
-.footer-desc{font-size:13px;color:#666;margin-top:4px}
-.footer-links{display:flex;gap:1.5rem}
-.footer-links a{font-size:13px;color:#666;transition:color .2s}
-.footer-links a:hover{color:#fff}
-.footer-bottom{max-width:1100px;margin:1.5rem auto 0;padding-top:1.5rem;border-top:1px solid #222;font-size:13px;color:#555;text-align:center}
-
-@media(max-width:600px){
-  .contact-cards{grid-template-columns:1fr}
-  .hero-ctas{flex-direction:column;align-items:center}
-  nav{padding:0 1rem}
-  .footer-inner{flex-direction:column;align-items:flex-start}
-}
-</style>
+<link rel="stylesheet" href="landing.css">
 </head>
 <body>
 <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -316,3 +204,4 @@ footer{background:#111;color:#fff;padding:3rem 2rem 2rem}
 
 </body>
 </html>
+
