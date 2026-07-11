@@ -5,10 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>LondonRooms — Rooms to Rent Across London</title>
 <meta name="description" content="Quality rooms to rent across London. Private landlord, no agency fees. View our available rooms and get in touch today.">
+<meta name="theme-color" content="#0C447C">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,'Segoe UI',sans-serif;color:#1a1a1a;overflow-x:hidden}
 a{text-decoration:none;color:inherit}
+a:focus-visible{outline:3px solid #7DD3FC;outline-offset:3px}
+.skip-link{position:absolute;left:1rem;top:-48px;background:#fff;color:#0C447C;padding:10px 14px;border-radius:8px;z-index:2000;font-weight:700;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+.skip-link:focus{top:1rem}
 
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;transition:background .3s,box-shadow .3s}
@@ -18,8 +22,10 @@ nav.scrolled .nav-logo{color:#185FA5}
 .nav-logo span{color:rgba(255,255,255,.7)}
 nav.scrolled .nav-logo span{color:#1a1a1a}
 nav.scrolled #nav-payrent{border-color:#185FA5;color:#185FA5}
+nav.scrolled .nav-links .btn-outline-white{border-color:#185FA5;color:#185FA5;background:#fff}
+nav.scrolled .nav-links .btn-outline-white:hover{background:#EEF5FF}
 .nav-links{display:flex;gap:8px;align-items:center}
-.btn{display:inline-block;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.btn{display:inline-block;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;min-height:40px}
 .btn-white{background:#fff;color:#185FA5}
 .btn-white:hover{background:#f0f0f0}
 .btn-outline-white{background:transparent;border:2px solid rgba(255,255,255,.6);color:#fff}
@@ -76,7 +82,7 @@ nav.scrolled #nav-payrent{border-color:#185FA5;color:#185FA5}
 
 /* AREAS */
 .areas{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:2.5rem}
-.area-pill{background:#fff;border:1px solid #e0e0e0;border-radius:50px;padding:10px 16px;text-align:center;font-size:14px;font-weight:500;transition:all .2s;cursor:pointer}
+.area-pill{background:#fff;border:1px solid #e0e0e0;border-radius:50px;padding:10px 16px;text-align:center;font-size:14px;font-weight:500;transition:all .2s}
 .area-pill:hover{background:#185FA5;color:#fff;border-color:#185FA5}
 
 /* CONTACT */
@@ -113,19 +119,12 @@ footer{background:#111;color:#fff;padding:3rem 2rem 2rem}
   .footer-inner{flex-direction:column;align-items:flex-start}
 }
 </style>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18203936229"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'AW-18203936229');
-    </script>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
 
 <!-- NAV -->
-<nav id="navbar">
+<nav id="navbar" aria-label="Primary">
   <div class="nav-logo">London<span>Rooms</span></div>
   <div class="nav-links">
     <a href="index.html?page=dashboard" class="btn btn-outline-white" id="nav-payrent">💳 Pay rent</a>
@@ -134,6 +133,7 @@ footer{background:#111;color:#fff;padding:3rem 2rem 2rem}
   </div>
 </nav>
 
+<main id="main-content">
 <!-- HERO -->
 <section class="hero">
   <div>
@@ -278,11 +278,12 @@ footer{background:#111;color:#fff;padding:3rem 2rem 2rem}
         <div class="contact-card-icon">📱</div>
         <h3>WhatsApp us</h3>
         <p>Message us directly for a faster response</p>
-        <a href="https://wa.me/447700000000" class="btn-contact-green" target="_blank">WhatsApp us</a>
+        <a href="https://wa.me/447700000000" class="btn-contact-green" target="_blank" rel="noopener noreferrer">WhatsApp us</a>
       </div>
     </div>
   </div>
 </section>
+</main>
 
 <!-- FOOTER -->
 <footer>

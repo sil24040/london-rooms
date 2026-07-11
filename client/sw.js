@@ -1,10 +1,13 @@
-const CACHE = 'londonrooms-v1';
+const CACHE = 'londonrooms-v2';
 const ASSETS = [
   '/',
   '/index.html',
+  '/landing.html',
   '/app.js',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+  '/i18n.js',
+  '/manifest.json',
+  '/icon-192.svg',
+  '/icon-512.svg'
 ];
 
 self.addEventListener('install', e => {
@@ -36,7 +39,7 @@ self.addEventListener('fetch', e => {
       caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
         if (e.request.method === 'GET') {
           const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
+          if (res.ok) caches.open(CACHE).then(c => c.put(e.request, clone));
         }
         return res;
       }))

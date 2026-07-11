@@ -24,8 +24,16 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/landing.html'));
 });
 
-// Serve static frontend files
-app.use(express.static(path.join(__dirname, '../client')));
+// Serve static frontend files with browser caching for repeat visits.
+app.use(express.static(path.join(__dirname, '../client'), {
+  etag: true,
+  maxAge: '7d',
+  setHeaders(res, filePath) {
+    if (filePath.endsWith('.html') || filePath.endsWith('sw.js')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
+}));
 
 // ── API ROUTES ──
 app.use('/api/enquiries', messagesRoutes);

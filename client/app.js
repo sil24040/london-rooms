@@ -19,6 +19,51 @@ let reviewRoomId = null;
 let reviewRoomTitle = null;
 let selectedReviewRating = 0;
 let existingReviewId = null;
+let leafletPromise = null;
+let lastFocusedElement = null;
+
+function loadLeaflet() {
+  if (window.L) return Promise.resolve(window.L);
+  if (leafletPromise) return leafletPromise;
+
+  leafletPromise = new Promise((resolve, reject) => {
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(css);
+
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.async = true;
+    script.onload = () => resolve(window.L);
+    script.onerror = () => reject(new Error('Map failed to load'));
+    document.head.appendChild(script);
+  });
+
+  return leafletPromise;
+}
+
+function openModal(id) {
+  const modal = document.getElementById(id);
+  lastFocusedElement = document.activeElement;
+  modal.classList.remove('hidden');
+  modal.querySelector('.modal')?.focus();
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+  if (lastFocusedElement && document.contains(lastFocusedElement)) {
+    lastFocusedElement.focus();
+  }
+}
+
+function closeTopModal() {
+  const modal = [...document.querySelectorAll('.modal-bg:not(.hidden)')].pop();
+  if (!modal) return false;
+  modal.classList.add('hidden');
+  if (lastFocusedElement && document.contains(lastFocusedElement)) lastFocusedElement.focus();
+  return true;
+}
  
 async function api(method, path, body, isForm) {
   const opts = { method, headers: {} };
@@ -32,22 +77,39 @@ async function api(method, path, body, isForm) {
     }
   }
   const res = await fetch('/api' + path, opts);
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    throw new Error('API returned a web page instead of data. Start the Express server and open http://localhost:3000.');
+  }
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Something went wrong');
   return data;
 }
  
 function toggleMenu(){
-  document.getElementById('navlinks').classList.toggle('open');
+  const links = document.getElementById('navlinks');
+  const isOpen = links.classList.toggle('open');
+  document.getElementById('hamburger').setAttribute('aria-expanded', String(isOpen));
 }
  
 function showPage(name) {
   document.getElementById('navlinks').classList.remove('open');
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  document.querySelectorAll('.navlinks button').forEach(b => b.classList.remove('active'));
+  document.getElementById('hamburger').setAttribute('aria-expanded', 'false');
+  document.querySelectorAll('.page').forEach(p => {
+    const isActive = p.id === 'page-' + name;
+    p.classList.toggle('active', isActive);
+    p.setAttribute('aria-hidden', String(!isActive));
+  });
+  document.querySelectorAll('.navlinks button').forEach(b => {
+    b.classList.remove('active');
+    b.removeAttribute('aria-current');
+  });
   const nb = document.getElementById('nav-' + name);
-  if (nb) nb.classList.add('active');
+  if (nb) {
+    nb.classList.add('active');
+    nb.setAttribute('aria-current', 'page');
+  }
+  document.getElementById('main-content')?.focus({ preventScroll: true });
   if (name === 'browse') loadRooms();
   if (name === 'saved') loadSaved();
   if (name === 'dashboard') loadDashboard();
@@ -178,10 +240,10 @@ function openDeleteAccount() {
   document.getElementById('delete-account-pw').value = '';
   document.getElementById('delete-account-error').style.display = 'none';
   document.getElementById('delete-account-pw-err').style.display = 'none';
-  document.getElementById('delete-account-modal').classList.remove('hidden');
+  openModal('delete-account-modal');
 }
 function closeDeleteAccount() {
-  document.getElementById('delete-account-modal').classList.add('hidden');
+  closeModal('delete-account-modal');
 }
 
 async function doDeleteAccount() {
@@ -267,6 +329,8 @@ function setView(view) {
   currentView = view;
   document.getElementById('view-list-btn').classList.toggle('active', view==='list');
   document.getElementById('view-map-btn').classList.toggle('active', view==='map');
+  document.getElementById('view-list-btn').setAttribute('aria-pressed', String(view === 'list'));
+  document.getElementById('view-map-btn').setAttribute('aria-pressed', String(view === 'map'));
   renderView();
   renderPagination();
 }
@@ -285,7 +349,13 @@ function renderView() {
   }
 }
  
-function renderBrowseMap() {
+async function renderBrowseMap() {
+  try {
+    await loadLeaflet();
+  } catch (e) {
+    document.getElementById('rooms-map-wrap').innerHTML = '<div class="alert alert-error" role="alert">The map could not be loaded. The room list is still available.</div>';
+    return;
+  }
   if (!browseMap) {
     browseMap = L.map('browse-map');
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -429,14 +499,17 @@ async function showDetail(id) {
       </div>`;
  
     if (r.lat && r.lng) {
-      setTimeout(() => {
+      loadLeaflet().then(() => setTimeout(() => {
         detailMap = L.map('detail-map').setView([r.lat, r.lng], 14);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; OpenStreetMap contributors', maxZoom: 18
         }).addTo(detailMap);
         L.marker([r.lat, r.lng]).addTo(detailMap).bindPopup(`<b>${escapeHtml(r.title)}</b><br>${escapeHtml(r.area)}`).openPopup();
         detailMap.invalidateSize();
-      }, 50);
+      }, 50)).catch(() => {
+        const map = document.getElementById('detail-map');
+        if (map) map.outerHTML = '<div class="alert alert-error" role="alert">The map could not be loaded.</div>';
+      });
     }
 
     loadRoomReviews(r._id, r.title);
@@ -572,7 +645,7 @@ function openAddRoom(){
   editingRoomId = null;
   document.getElementById('room-modal-title').textContent = 'List a room';
   document.getElementById('add-room-btn').textContent = 'List room';
-  document.getElementById('add-room-modal').classList.remove('hidden');
+  openModal('add-room-modal');
   document.getElementById('add-room-error').style.display='none';
   document.getElementById('rm-img-preview').style.display='none';
   document.getElementById('rm-remove-img-label').style.display='none';
@@ -591,7 +664,7 @@ async function openEditRoom(id) {
     editingRoomId = id;
     document.getElementById('room-modal-title').textContent = 'Edit room';
     document.getElementById('add-room-btn').textContent = 'Save changes';
-    document.getElementById('add-room-modal').classList.remove('hidden');
+    openModal('add-room-modal');
     document.getElementById('add-room-error').style.display='none';
     clearFieldErrors(['rm-title-err','rm-desc-err','rm-price-err','rm-area-err','rm-address-err']);
     document.getElementById('rm-title').value = r.title;
@@ -615,7 +688,7 @@ async function openEditRoom(id) {
   } catch(e) { alert(e.message); }
 }
  
-function closeAddRoom(){ document.getElementById('add-room-modal').classList.add('hidden'); }
+function closeAddRoom(){ closeModal('add-room-modal'); }
  
 async function doSaveRoom() {
   const title=document.getElementById('rm-title').value.trim();
@@ -676,9 +749,9 @@ function openEnquiry(roomId, title) {
   document.getElementById('enquiry-msg-err').style.display='none';
   document.getElementById('enquiry-form-wrap').style.display='';
   document.getElementById('enquiry-btn').style.display='';
-  document.getElementById('enquiry-modal').classList.remove('hidden');
+  openModal('enquiry-modal');
 }
-function closeEnquiry(){ document.getElementById('enquiry-modal').classList.add('hidden'); }
+function closeEnquiry(){ closeModal('enquiry-modal'); }
  
 async function doEnquiry() {
   const msg = document.getElementById('enquiry-msg').value.trim();
@@ -705,10 +778,10 @@ function openEditEnquiry(id, currentMsg) {
   document.getElementById('edit-enq-msg').value = currentMsg;
   document.getElementById('edit-enq-error').style.display='none';
   document.getElementById('edit-enq-msg-err').style.display='none';
-  document.getElementById('edit-enq-modal').classList.remove('hidden');
+  openModal('edit-enq-modal');
 }
 function closeEditEnquiry() {
-  document.getElementById('edit-enq-modal').classList.add('hidden');
+  closeModal('edit-enq-modal');
 }
  
 async function doEditEnquiry() {
@@ -744,9 +817,9 @@ function openReply(enquiryId, roomTitle, tenantName) {
   document.getElementById('reply-msg').value='';
   document.getElementById('reply-error').style.display='none';
   document.getElementById('reply-msg-err').style.display='none';
-  document.getElementById('reply-modal').classList.remove('hidden');
+  openModal('reply-modal');
 }
-function closeReply(){ document.getElementById('reply-modal').classList.add('hidden'); }
+function closeReply(){ closeModal('reply-modal'); }
  
 async function doReply() {
   const msg = document.getElementById('reply-msg').value.trim();
@@ -766,11 +839,20 @@ async function doReply() {
 document.getElementById('add-room-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeAddRoom(); });
 document.getElementById('enquiry-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeEnquiry(); });
 document.getElementById('reply-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeReply(); });
+document.getElementById('booking-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeBooking(); });
+document.getElementById('review-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeReviewModal(); });
+document.getElementById('edit-enq-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeEditEnquiry(); });
+document.getElementById('pay-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closePayRent(); });
+document.getElementById('delete-account-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeDeleteAccount(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeTopModal();
+});
 document.addEventListener('click', e => {
   const wrap = document.getElementById('notif-wrap');
   const dropdown = document.getElementById('notif-dropdown');
   if (wrap && !wrap.contains(e.target) && !dropdown.classList.contains('hidden')) {
     dropdown.classList.add('hidden');
+    document.querySelector('.notif-bell')?.setAttribute('aria-expanded', 'false');
   }
 });
  
@@ -786,7 +868,13 @@ if (incomingPage && user) {
 updateNav();
 applyTranslations();
 // Apply saved language
-if (localStorage.getItem('lang')) { currentLang = localStorage.getItem('lang'); document.getElementById('lang-'+currentLang).classList.add('active'); if(currentLang!=='en') document.getElementById('lang-en').classList.remove('active'); }
+if (localStorage.getItem('lang')) {
+  currentLang = localStorage.getItem('lang');
+  document.getElementById('lang-'+currentLang).classList.add('active');
+  if(currentLang!=='en') document.getElementById('lang-en').classList.remove('active');
+  document.getElementById('lang-en').setAttribute('aria-pressed', String(currentLang === 'en'));
+  document.getElementById('lang-pt').setAttribute('aria-pressed', String(currentLang === 'pt'));
+}
 loadRooms();
  
 // ── MY RENTAL / PAYMENTS ──
@@ -914,10 +1002,10 @@ function openPayRent(monthStr, label) {
   document.getElementById('pay-success').style.display='none';
   document.getElementById('pay-form-wrap').style.display='';
   document.getElementById('pay-btn').style.display='';
-  document.getElementById('pay-modal').classList.remove('hidden');
+  openModal('pay-modal');
 }
 function closePayRent(){
-  document.getElementById('pay-modal').classList.add('hidden');
+  closeModal('pay-modal');
   loadMyRental();
 }
  
@@ -976,10 +1064,10 @@ function openBooking(roomId, title) {
   document.getElementById('booking-error').style.display = 'none';
   document.getElementById('booking-form-wrap').style.display = '';
   document.getElementById('booking-btn').style.display = '';
-  document.getElementById('booking-modal').classList.remove('hidden');
+  openModal('booking-modal');
 }
 function closeBooking() {
-  document.getElementById('booking-modal').classList.add('hidden');
+  closeModal('booking-modal');
 }
 
 async function doBooking() {
@@ -1093,6 +1181,7 @@ function updateNotifBadge(count) {
   const badge = document.getElementById('notif-badge');
   if (count > 0) { badge.textContent = count > 9 ? '9+' : count; badge.style.display = ''; }
   else { badge.style.display = 'none'; }
+  document.querySelector('.notif-bell')?.setAttribute('aria-label', count > 0 ? `Notifications, ${count} unread` : 'Notifications');
 }
 
 function renderNotifDropdown(items) {
@@ -1118,6 +1207,7 @@ async function loadNotifications() {
 function toggleNotifDropdown() {
   const dropdown = document.getElementById('notif-dropdown');
   dropdown.classList.toggle('hidden');
+  document.querySelector('.notif-bell')?.setAttribute('aria-expanded', String(!dropdown.classList.contains('hidden')));
   if (!dropdown.classList.contains('hidden')) loadNotifications();
 }
 
@@ -1125,6 +1215,7 @@ async function clickNotification(id, linkPage) {
   try { await api('PUT', '/notifications/' + id + '/read'); } catch (e) { /* ignore */ }
   loadNotifications();
   document.getElementById('notif-dropdown').classList.add('hidden');
+  document.querySelector('.notif-bell')?.setAttribute('aria-expanded', 'false');
   if (linkPage) showPage(linkPage);
 }
 
@@ -1201,15 +1292,16 @@ async function openReviewModal(roomId, roomTitle) {
     }
   } catch (e) { /* no existing review, ignore */ }
 
-  document.getElementById('review-modal').classList.remove('hidden');
+  openModal('review-modal');
 }
 function closeReviewModal() {
-  document.getElementById('review-modal').classList.add('hidden');
+  closeModal('review-modal');
 }
 
 function updateStarPicker(rating) {
-  document.querySelectorAll('#review-star-picker span').forEach(el => {
+  document.querySelectorAll('#review-star-picker button').forEach(el => {
     el.classList.toggle('filled', Number(el.dataset.star) <= rating);
+    el.setAttribute('aria-checked', String(Number(el.dataset.star) === rating));
   });
 }
 

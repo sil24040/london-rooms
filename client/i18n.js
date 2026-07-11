@@ -210,6 +210,8 @@ function setLang(lang) {
   localStorage.setItem('lang', lang);
   document.getElementById('lang-en').classList.toggle('active', lang === 'en');
   document.getElementById('lang-pt').classList.toggle('active', lang === 'pt');
+  document.getElementById('lang-en').setAttribute('aria-pressed', String(lang === 'en'));
+  document.getElementById('lang-pt').setAttribute('aria-pressed', String(lang === 'pt'));
   applyTranslations();
   // Re-render current page content
   loadRooms();
