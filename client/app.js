@@ -495,7 +495,7 @@ async function showDetail(id) {
         : user.role==='landlord' ? `<p style="margin:8px 0;color:#666">You're viewing this as a landlord.</p>`
         : `<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openEnquiry('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Send enquiry</button>
            <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openBooking('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Request to book</button>
-           <button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="setMyRental('${r._id}')">${myRentalRoomId===r._id ? t('thisIsMyRoom') : t('markAsMyRoom')}</button>`}
+
       </div>`;
  
     if (r.lat && r.lng) {
@@ -551,6 +551,7 @@ async function loadDashboard() {
     document.getElementById('tenant-dash').style.display='';
     document.getElementById('landlord-dash').style.display='none';
     loadTenantEnquiries();
+    loadMyOffers();
     loadMyRental();
     loadMyBookings();
   }
@@ -621,7 +622,7 @@ async function loadLandlordEnquiries() {
         <div class="meta">From: ${escapeHtml(e.tenantName)}</div>
         <div style="font-size:13px;margin:6px 0">"${escapeHtml(e.message)}"</div>
         <div class="meta">${new Date(e.createdAt).toLocaleDateString('en-GB')} · <span class="badge ${e.status==='replied'?'badge-replied':'badge-avail'}">${e.status}</span></div>
-        ${e.reply ? `<div style="margin-top:8px;padding:8px;background:#f5f5f3;border-radius:8px;font-size:13px"><strong>${t('yourReplyLabel')}</strong><br>${escapeHtml(e.reply)}</div>` : `<button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="openReply('${e._id}','${escapeHtml(e.roomTitle).replace(/'/g,"\\'")}','${escapeHtml(e.tenantName).replace(/'/g,"\\'")}')">Reply</button>`}
+        ${e.reply ? `<div style="margin-top:8px;padding:8px;background:#f5f5f3;border-radius:8px;font-size:13px"><strong>${t('yourReplyLabel')}</strong><br>${escapeHtml(e.reply)}</div>` : `<button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="openReply('${e._id}','${escapeHtml(e.roomTitle).replace(/'/g,"\\'")}','${escapeHtml(e.tenantName).replace(/'/g,"\\'")}')">Reply</button><button class="btn btn-primary btn-sm" style="margin-top:8px;margin-left:6px" onclick="sendOffer('${e._id}')">🏠 Offer room</button>`}
       </div>`).join('');
   } catch(e) { el.innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
 }
@@ -796,6 +797,7 @@ async function doEditEnquiry() {
     await api('PUT','/enquiries/'+editingEnquiryId,{message});
     closeEditEnquiry();
     loadTenantEnquiries();
+    loadMyOffers();
   } catch(e) {
     document.getElementById('edit-enq-error').textContent = e.message;
     document.getElementById('edit-enq-error').style.display='';
@@ -807,6 +809,7 @@ async function deleteEnquiry(id) {
   try {
     await api('DELETE','/enquiries/'+id);
     loadTenantEnquiries();
+    loadMyOffers();
   } catch(e) { alert(e.message); }
 }
  
@@ -1392,4 +1395,50 @@ async function doDeleteReview() {
     closeReviewModal();
     loadRoomReviews(reviewRoomId, reviewRoomTitle);
   } catch (e) { alert(e.message); }
+}
+
+// ── OFFERS ──
+async function sendOffer(enquiryId) {
+  if (!confirm('Send a room offer to this tenant?')) return;
+  try {
+    await api('POST', '/offers', { enquiryId });
+    alert('✓ Offer sent! The tenant will see it on their dashboard.');
+    loadLandlordEnquiries();
+  } catch(e) { alert(e.message); }
+}
+
+async function loadMyOffers() {
+  const el = document.getElementById('my-offers-section');
+  if (!el) return;
+  try {
+    const offers = await api('GET', '/offers/mine');
+    const pending = offers.filter(o => o.status === 'pending');
+    if (!pending.length) { el.innerHTML = ''; return; }
+    el.innerHTML = `
+      <h2 style="font-size:16px;margin-bottom:8px">🏠 Room offers</h2>
+      ${pending.map(o => `
+        <div class="card" style="margin-bottom:8px;border-left:4px solid #185FA5">
+          <strong>${escapeHtml(o.roomTitle)}</strong>
+          <div class="meta">From: ${escapeHtml(o.landlordName)}</div>
+          <p style="font-size:13px;color:#666;margin:6px 0">The landlord has offered you this room. Would you like to accept?</p>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary btn-sm" onclick="respondToOffer('${o._id}','accepted')">✓ Accept</button>
+            <button class="btn btn-danger btn-sm" onclick="respondToOffer('${o._id}','declined')">✗ Decline</button>
+          </div>
+        </div>`).join('')}`;
+  } catch(e) { console.error(e); }
+}
+
+async function respondToOffer(offerId, status) {
+  const msg = status === 'accepted' ? 'Accept this room offer?' : 'Decline this offer?';
+  if (!confirm(msg)) return;
+  try {
+    await api('PUT', '/offers/' + offerId, { status });
+    if (status === 'accepted') {
+      alert('✓ You have accepted the room! It has been marked as your rental.');
+    } else {
+      alert('Offer declined.');
+    }
+    loadDashboard();
+  } catch(e) { alert(e.message); }
 }

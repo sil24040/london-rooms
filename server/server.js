@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth.routes');
 const roomsRoutes = require('./routes/rooms.routes');
 const enquiriesRoutes = require('./routes/enquiries.routes');
 const rentalRoutes = require('./routes/rental.routes');
+const offersRoutes = require("./routes/offers.routes");
 const messagesRoutes = require('./routes/messages.routes');
 const bookingRoutes = require('./routes/booking.routes');
 const notificationRoutes = require('./routes/notification.routes');
@@ -36,7 +37,8 @@ app.use(express.static(path.join(__dirname, '../client'), {
 }));
 
 // ── API ROUTES ──
-app.use('/api/enquiries', messagesRoutes);
+app.use("/api/enquiries", messagesRoutes);
+app.use("/api/offers", offersRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomsRoutes);
 app.use('/api/enquiries', enquiriesRoutes);
