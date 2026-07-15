@@ -494,7 +494,7 @@ async function showDetail(id) {
         ${!user ? `<p style="margin:8px 0;color:#666">Sign in to send an enquiry</p><button class="btn btn-primary" style="width:100%" onclick="showPage('login')">Sign in</button>`
         : user.role==='landlord' ? `<p style="margin:8px 0;color:#666">You're viewing this as a landlord.</p>`
         : `<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openEnquiry('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Send enquiry</button>
-           <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openBooking('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Request to book</button>
+           <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openBooking('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Request to book</button>`}
 
       </div>`;
  
@@ -1296,7 +1296,15 @@ async function loadRoomReviews(roomId, roomTitle) {
   el.innerHTML = '<div class="loading-wrap"><span class="spinner"></span></div>';
   try {
     const res = await api('GET', '/reviews/room/' + roomId);
-    const canReview = user && user.role === 'tenant';
+    const isTenant = user && user.role === 'tenant';
+    let reviewEligibility = null;
+    if (isTenant) {
+      try {
+        reviewEligibility = await api('GET', '/reviews/eligibility/' + roomId);
+      } catch (e) {
+        reviewEligibility = { eligible: false, reason: e.message };
+      }
+    }
 
     const summary = res.count
       ? `<div class="review-summary"><span class="avg">${res.average}</span>${renderStars(Math.round(res.average))}<span style="color:#666;font-size:13px">(${res.count} review${res.count===1?'':'s'})</span></div>`
@@ -1315,7 +1323,8 @@ async function loadRoomReviews(roomId, roomTitle) {
     el.innerHTML = `
       <div class="card">
         ${summary}
-        ${canReview ? `<button class="btn btn-outline btn-sm" style="margin-bottom:1rem" onclick="openReviewModal('${roomId}','${escapeHtml(roomTitle).replace(/'/g,"\\'")}')">Write a review</button>` : ''}
+        ${reviewEligibility?.eligible ? `<button class="btn btn-outline btn-sm" style="margin-bottom:1rem" onclick="openReviewModal('${roomId}','${escapeHtml(roomTitle).replace(/'/g,"\\'")}')">Write a review</button>` : ''}
+        ${isTenant && reviewEligibility && !reviewEligibility.eligible ? `<p style="color:#666;font-size:13px;margin-bottom:1rem">${escapeHtml(reviewEligibility.reason)}</p>` : ''}
         ${list || ''}
       </div>`;
   } catch (e) {
@@ -1324,6 +1333,17 @@ async function loadRoomReviews(roomId, roomTitle) {
 }
 
 async function openReviewModal(roomId, roomTitle) {
+  try {
+    const eligibility = await api('GET', '/reviews/eligibility/' + roomId);
+    if (!eligibility.eligible) {
+      alert(eligibility.reason);
+      return;
+    }
+  } catch (e) {
+    alert(e.message);
+    return;
+  }
+
   reviewRoomId = roomId;
   reviewRoomTitle = roomTitle;
   document.getElementById('review-room-title').textContent = roomTitle;
