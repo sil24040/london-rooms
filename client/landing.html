@@ -6,6 +6,7 @@
 <title>LondonRooms — Rooms to Rent Across London</title>
 <meta name="description" content="Quality rooms to rent across London. Private landlord, no agency fees. View our available rooms and get in touch today.">
 <meta name="theme-color" content="#0C447C">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="landing.css">
 </head>
 <body>
@@ -14,7 +15,8 @@
 <!-- NAV -->
 <nav id="navbar" aria-label="Primary">
   <div class="nav-logo">London<span>Rooms</span></div>
-  <div class="nav-links">
+  <button class="nav-hamburger" id="landing-hamburger" type="button" aria-label="Open menu" aria-controls="landing-nav-links" aria-expanded="false">☰</button>
+  <div class="nav-links" id="landing-nav-links">
     <a href="index.html?page=dashboard" class="btn btn-outline-white" id="nav-payrent">💳 Pay rent</a>
     <a href="index.html?page=login" class="btn btn-outline-white" id="nav-signin">Sign in</a>
     <a href="index.html" class="btn btn-white">View rooms →</a>
@@ -191,12 +193,22 @@
 
 <script>
   const navbar = document.getElementById('navbar');
+  const menuButton = document.getElementById('landing-hamburger');
+  const navLinks = document.getElementById('landing-nav-links');
+  menuButton.addEventListener('click', () => {
+    const isOpen = navLinks.classList.toggle('open');
+    menuButton.setAttribute('aria-expanded', String(isOpen));
+    menuButton.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
+  });
   window.addEventListener('scroll', () => {
     navbar.classList.toggle('scrolled', window.scrollY > 50);
   });
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       e.preventDefault();
+      navLinks.classList.remove('open');
+      menuButton.setAttribute('aria-expanded', 'false');
+      menuButton.setAttribute('aria-label', 'Open menu');
       document.querySelector(a.getAttribute('href'))?.scrollIntoView({behavior:'smooth'});
     });
   });

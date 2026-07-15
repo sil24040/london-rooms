@@ -87,14 +87,35 @@ async function api(method, path, body, isForm) {
 }
  
 function toggleMenu(){
-  const links = document.getElementById('navlinks');
-  const isOpen = links.classList.toggle('open');
-  document.getElementById('hamburger').setAttribute('aria-expanded', String(isOpen));
+  const menu = document.getElementById('nav-menu');
+  const isOpen = menu.classList.toggle('open');
+  const button = document.getElementById('hamburger');
+  button.setAttribute('aria-expanded', String(isOpen));
+  button.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
 }
  
+function syncPageUrl(name) {
+  const url = new URL(window.location.href);
+  if (name === 'browse') {
+    url.searchParams.delete('page');
+    url.searchParams.delete('room');
+  } else {
+    url.searchParams.set('page', name);
+    if (name === 'detail' && currentRoomId) {
+      url.searchParams.set('room', currentRoomId);
+    } else {
+      url.searchParams.delete('room');
+    }
+  }
+  window.history.replaceState({ page: name, roomId: currentRoomId }, '', url);
+}
+
 function showPage(name) {
-  document.getElementById('navlinks').classList.remove('open');
+  if (!document.getElementById('page-' + name)) name = 'browse';
+  syncPageUrl(name);
+  document.getElementById('nav-menu').classList.remove('open');
   document.getElementById('hamburger').setAttribute('aria-expanded', 'false');
+  document.getElementById('hamburger').setAttribute('aria-label', 'Open menu');
   document.querySelectorAll('.page').forEach(p => {
     const isActive = p.id === 'page-' + name;
     p.classList.toggle('active', isActive);
@@ -494,7 +515,7 @@ async function showDetail(id) {
         ${!user ? `<p style="margin:8px 0;color:#666">Sign in to send an enquiry</p><button class="btn btn-primary" style="width:100%" onclick="showPage('login')">Sign in</button>`
         : user.role==='landlord' ? `<p style="margin:8px 0;color:#666">You're viewing this as a landlord.</p>`
         : `<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openEnquiry('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Send enquiry</button>
-           <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openBooking('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Request to book</button>
+           <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openBooking('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Request to book</button>`}
 
       </div>`;
  
@@ -859,12 +880,16 @@ document.addEventListener('click', e => {
   }
 });
  
-// Handle incoming page param (e.g. from landing page Pay Rent button)
+// Restore the requested page on refresh (e.g. a room detail or Pay Rent link).
 const urlParams = new URLSearchParams(window.location.search);
 const incomingPage = urlParams.get('page');
-if (incomingPage && user) {
+const incomingRoomId = urlParams.get('room');
+const protectedPages = new Set(['saved', 'dashboard', 'profile']);
+if (incomingPage === 'detail' && incomingRoomId) {
+  showDetail(incomingRoomId);
+} else if (incomingPage && (!protectedPages.has(incomingPage) || user)) {
   showPage(incomingPage);
-} else if (incomingPage && !user) {
+} else if (incomingPage && protectedPages.has(incomingPage) && !user) {
   showPage('login');
 }
  
@@ -1296,7 +1321,15 @@ async function loadRoomReviews(roomId, roomTitle) {
   el.innerHTML = '<div class="loading-wrap"><span class="spinner"></span></div>';
   try {
     const res = await api('GET', '/reviews/room/' + roomId);
-    const canReview = user && user.role === 'tenant';
+    const isTenant = user && user.role === 'tenant';
+    let reviewEligibility = null;
+    if (isTenant) {
+      try {
+        reviewEligibility = await api('GET', '/reviews/eligibility/' + roomId);
+      } catch (e) {
+        reviewEligibility = { eligible: false, reason: e.message };
+      }
+    }
 
     const summary = res.count
       ? `<div class="review-summary"><span class="avg">${res.average}</span>${renderStars(Math.round(res.average))}<span style="color:#666;font-size:13px">(${res.count} review${res.count===1?'':'s'})</span></div>`
@@ -1315,7 +1348,8 @@ async function loadRoomReviews(roomId, roomTitle) {
     el.innerHTML = `
       <div class="card">
         ${summary}
-        ${canReview ? `<button class="btn btn-outline btn-sm" style="margin-bottom:1rem" onclick="openReviewModal('${roomId}','${escapeHtml(roomTitle).replace(/'/g,"\\'")}')">Write a review</button>` : ''}
+        ${reviewEligibility?.eligible ? `<button class="btn btn-outline btn-sm" style="margin-bottom:1rem" onclick="openReviewModal('${roomId}','${escapeHtml(roomTitle).replace(/'/g,"\\'")}')">Write a review</button>` : ''}
+        ${isTenant && reviewEligibility && !reviewEligibility.eligible ? `<p style="color:#666;font-size:13px;margin-bottom:1rem">${escapeHtml(reviewEligibility.reason)}</p>` : ''}
         ${list || ''}
       </div>`;
   } catch (e) {
@@ -1324,6 +1358,17 @@ async function loadRoomReviews(roomId, roomTitle) {
 }
 
 async function openReviewModal(roomId, roomTitle) {
+  try {
+    const eligibility = await api('GET', '/reviews/eligibility/' + roomId);
+    if (!eligibility.eligible) {
+      alert(eligibility.reason);
+      return;
+    }
+  } catch (e) {
+    alert(e.message);
+    return;
+  }
+
   reviewRoomId = roomId;
   reviewRoomTitle = roomTitle;
   document.getElementById('review-room-title').textContent = roomTitle;

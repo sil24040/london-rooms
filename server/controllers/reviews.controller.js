@@ -12,6 +12,23 @@ async function isEligibleToReview(userId, roomId) {
   return rental.rows[0]?.rental_room_id === roomId;
 }
 
+async function reviewEligibility(req, res) {
+  if (req.user.role !== 'tenant') {
+    return res.json({ eligible: false, reason: 'Only tenants can leave reviews' });
+  }
+
+  try {
+    const eligible = await isEligibleToReview(req.user.userId, req.params.roomId);
+    res.json({
+      eligible,
+      reason: eligible ? null : 'Only tenants who have rented this room can leave a review'
+    });
+  } catch (e) {
+    console.error('GET /api/reviews/eligibility/:roomId failed:', e);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
 async function createOrUpdateReview(req, res) {
   if (req.user.role !== 'tenant') return res.status(403).json({ error: 'Only tenants can leave reviews' });
   const { rating, comment } = req.body;
@@ -81,4 +98,4 @@ async function deleteReview(req, res) {
   }
 }
 
-module.exports = { createOrUpdateReview, getRoomReviews, myReview, deleteReview };
+module.exports = { createOrUpdateReview, getRoomReviews, reviewEligibility, myReview, deleteReview };
