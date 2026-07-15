@@ -16,6 +16,9 @@ nav.scrolled #nav-payrent{border-color:#185FA5;color:#185FA5}
 nav.scrolled .nav-links .btn-outline-white{border-color:#185FA5;color:#185FA5;background:#fff}
 nav.scrolled .nav-links .btn-outline-white:hover{background:#EEF5FF}
 .nav-links{display:flex;gap:8px;align-items:center}
+.nav-hamburger{display:none;background:transparent;border:0;color:#fff;font-size:24px;line-height:1;min-width:44px;min-height:44px;cursor:pointer;border-radius:8px}
+.nav-hamburger:focus-visible{outline:3px solid #7DD3FC;outline-offset:2px}
+nav.scrolled .nav-hamburger{color:#185FA5}
 .btn{display:inline-block;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;min-height:40px}
 .btn-white{background:#fff;color:#185FA5}
 .btn-white:hover{background:#f0f0f0}
@@ -107,5 +110,9 @@ footer{background:#111;color:#fff;padding:3rem 2rem 2rem}
   .contact-cards{grid-template-columns:1fr}
   .hero-ctas{flex-direction:column;align-items:center}
   nav{padding:0 1rem}
+  .nav-hamburger{display:block;margin-left:auto}
+  .nav-links{display:none}
+  .nav-links.open{display:flex;position:absolute;top:64px;left:0;right:0;flex-direction:column;align-items:stretch;padding:12px 1rem 1rem;background:#fff;box-shadow:0 8px 18px rgba(0,0,0,.12)}
+  .nav-links.open .btn{width:100%;text-align:center;color:#185FA5;background:#fff;border-color:#185FA5}
   .footer-inner{flex-direction:column;align-items:flex-start}
 }

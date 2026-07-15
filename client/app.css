@@ -6,6 +6,7 @@ a{color:#185FA5}
 nav{background:#fff;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;height:56px;padding:0 1rem;gap:1rem;position:sticky;top:0;z-index:50}
 .logo{font-weight:700;color:#185FA5;font-size:18px;cursor:pointer;background:none;border:none;padding:8px 4px}
 .logo span{color:#1a1a1a}
+.nav-menu{display:flex;align-items:center;gap:1rem;flex:1;min-width:0}
 .navlinks{display:flex;gap:1rem;flex:1}
 .navlinks button{background:none;border:none;font-size:14px;color:#555;cursor:pointer;padding:8px 2px}
 .navlinks button.active{color:#1a1a1a;font-weight:600}
@@ -118,11 +119,18 @@ label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
 .review-item:last-child{border-bottom:none}
 
 @media (max-width:700px) {
-  .navlinks{display:none}
-  .navlinks.open{display:flex;position:absolute;top:56px;left:0;right:0;background:#fff;flex-direction:column;padding:8px 1rem;border-bottom:1px solid #e0e0e0;gap:0}
-  .navlinks.open button{padding:10px 0;text-align:left;border-bottom:1px solid #f0f0f0;width:100%}
-  .hamburger{display:block}
-  .navright .btn{padding:6px 10px;font-size:12px}
+  nav{justify-content:space-between;gap:.5rem}
+  .logo{white-space:nowrap}
+  .hamburger{display:block;margin-left:auto;min-width:44px;min-height:44px}
+  .nav-menu{display:none}
+  .nav-menu.open{display:flex;position:absolute;top:56px;left:0;right:0;background:#fff;flex-direction:column;align-items:stretch;padding:8px 1rem 1rem;border-bottom:1px solid #e0e0e0;box-shadow:0 8px 18px rgba(0,0,0,.1);gap:10px}
+  .nav-menu.open .navlinks{display:flex;flex-direction:column;gap:0}
+  .nav-menu.open .navlinks button{padding:12px 0;text-align:left;border-bottom:1px solid #f0f0f0;width:100%}
+  .nav-menu.open .lang-toggle{align-self:flex-start}
+  .nav-menu.open .navright{margin:0;display:flex;flex-direction:column;align-items:stretch;width:100%}
+  .nav-menu.open .navright .btn{width:100%}
+  .nav-menu.open #nav-user{text-align:center;padding:4px}
+  .nav-menu.open .notif-wrap{align-self:flex-start}
   .hero h1{font-size:20px}
   .filters{gap:6px}
   .filters select, .filters label{font-size:12px}

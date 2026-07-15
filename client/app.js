@@ -87,9 +87,11 @@ async function api(method, path, body, isForm) {
 }
  
 function toggleMenu(){
-  const links = document.getElementById('navlinks');
-  const isOpen = links.classList.toggle('open');
-  document.getElementById('hamburger').setAttribute('aria-expanded', String(isOpen));
+  const menu = document.getElementById('nav-menu');
+  const isOpen = menu.classList.toggle('open');
+  const button = document.getElementById('hamburger');
+  button.setAttribute('aria-expanded', String(isOpen));
+  button.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
 }
  
 function syncPageUrl(name) {
@@ -111,8 +113,9 @@ function syncPageUrl(name) {
 function showPage(name) {
   if (!document.getElementById('page-' + name)) name = 'browse';
   syncPageUrl(name);
-  document.getElementById('navlinks').classList.remove('open');
+  document.getElementById('nav-menu').classList.remove('open');
   document.getElementById('hamburger').setAttribute('aria-expanded', 'false');
+  document.getElementById('hamburger').setAttribute('aria-label', 'Open menu');
   document.querySelectorAll('.page').forEach(p => {
     const isActive = p.id === 'page-' + name;
     p.classList.toggle('active', isActive);

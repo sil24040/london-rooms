@@ -20,18 +20,19 @@
 
 <nav aria-label="Primary">
   <button class="logo" type="button" onclick="showPage('browse')" aria-label="LondonRooms home">London<span>Rooms</span></button>
-  <button class="hamburger" id="hamburger" type="button" onclick="toggleMenu()" aria-label="Menu" aria-controls="navlinks" aria-expanded="false">☰</button>
-  <div class="lang-toggle" style="margin-left:auto;margin-right:8px" role="group" aria-label="Language">
-    <button id="lang-en" class="active" type="button" onclick="setLang('en')" aria-pressed="true">EN</button>
-    <button id="lang-pt" type="button" onclick="setLang('pt')" aria-pressed="false">PT</button>
-  </div>
-  <div class="navlinks" id="navlinks">
-    <button type="button" onclick="showPage('browse')" id="nav-browse" class="active" aria-current="page">Browse</button>
-    <button type="button" onclick="showPage('saved')" id="nav-saved" style="display:none">Saved</button>
-    <button type="button" onclick="showPage('dashboard')" id="nav-dash" style="display:none">Dashboard</button>
-    <button type="button" onclick="showPage('profile')" id="nav-profile" style="display:none">Profile</button>
-  </div>
-  <div class="navright">
+  <button class="hamburger" id="hamburger" type="button" onclick="toggleMenu()" aria-label="Open menu" aria-controls="nav-menu" aria-expanded="false">☰</button>
+  <div class="nav-menu" id="nav-menu">
+    <div class="navlinks" id="navlinks">
+      <button type="button" onclick="showPage('browse')" id="nav-browse" class="active" aria-current="page">Browse</button>
+      <button type="button" onclick="showPage('saved')" id="nav-saved" style="display:none">Saved</button>
+      <button type="button" onclick="showPage('dashboard')" id="nav-dash" style="display:none">Dashboard</button>
+      <button type="button" onclick="showPage('profile')" id="nav-profile" style="display:none">Profile</button>
+    </div>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button id="lang-en" class="active" type="button" onclick="setLang('en')" aria-pressed="true">EN</button>
+      <button id="lang-pt" type="button" onclick="setLang('pt')" aria-pressed="false">PT</button>
+    </div>
+    <div class="navright">
     <div class="notif-wrap" id="notif-wrap">
       <button class="notif-bell" type="button" onclick="toggleNotifDropdown()" aria-label="Notifications" aria-controls="notif-dropdown" aria-expanded="false">
         🔔<span class="notif-badge" id="notif-badge" style="display:none">0</span>
@@ -48,6 +49,7 @@
     <button class="btn btn-outline btn-sm" type="button" id="btn-logout" style="display:none" onclick="logout()">Sign out</button>
     <button class="btn btn-outline btn-sm" type="button" id="btn-login" onclick="showPage('login')">Sign in</button>
     <button class="btn btn-primary btn-sm" type="button" id="btn-register" onclick="showPage('register')">Sign up</button>
+    </div>
   </div>
 </nav>
 
