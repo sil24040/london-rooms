@@ -1,4 +1,4 @@
-const CACHE = 'londonrooms-v2';
+const CACHE = 'londonrooms-v3';
 const ASSETS = [
   '/',
   '/index.html',
@@ -8,6 +8,7 @@ const ASSETS = [
   '/app.css',
   '/i18n.js',
   '/manifest.json',
+  '/favicon.svg',
   '/icon-192.svg',
   '/icon-512.svg'
 ];

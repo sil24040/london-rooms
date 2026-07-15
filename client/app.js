@@ -92,7 +92,25 @@ function toggleMenu(){
   document.getElementById('hamburger').setAttribute('aria-expanded', String(isOpen));
 }
  
+function syncPageUrl(name) {
+  const url = new URL(window.location.href);
+  if (name === 'browse') {
+    url.searchParams.delete('page');
+    url.searchParams.delete('room');
+  } else {
+    url.searchParams.set('page', name);
+    if (name === 'detail' && currentRoomId) {
+      url.searchParams.set('room', currentRoomId);
+    } else {
+      url.searchParams.delete('room');
+    }
+  }
+  window.history.replaceState({ page: name, roomId: currentRoomId }, '', url);
+}
+
 function showPage(name) {
+  if (!document.getElementById('page-' + name)) name = 'browse';
+  syncPageUrl(name);
   document.getElementById('navlinks').classList.remove('open');
   document.getElementById('hamburger').setAttribute('aria-expanded', 'false');
   document.querySelectorAll('.page').forEach(p => {
@@ -859,12 +877,16 @@ document.addEventListener('click', e => {
   }
 });
  
-// Handle incoming page param (e.g. from landing page Pay Rent button)
+// Restore the requested page on refresh (e.g. a room detail or Pay Rent link).
 const urlParams = new URLSearchParams(window.location.search);
 const incomingPage = urlParams.get('page');
-if (incomingPage && user) {
+const incomingRoomId = urlParams.get('room');
+const protectedPages = new Set(['saved', 'dashboard', 'profile']);
+if (incomingPage === 'detail' && incomingRoomId) {
+  showDetail(incomingRoomId);
+} else if (incomingPage && (!protectedPages.has(incomingPage) || user)) {
   showPage(incomingPage);
-} else if (incomingPage && !user) {
+} else if (incomingPage && protectedPages.has(incomingPage) && !user) {
   showPage('login');
 }
  
