@@ -597,7 +597,7 @@ async function loadTenantEnquiries() {
         <strong>${escapeHtml(e.roomTitle)}</strong>
         <div class="meta">${escapeHtml(e.roomArea)} · £${e.roomPrice}/mo · To: ${escapeHtml(e.landlordName)}</div>
         <div style="font-size:13px;margin:6px 0" id="enq-msg-${e._id}">"${escapeHtml(e.message)}"</div>
-        <div class="meta">${new Date(e.createdAt).toLocaleDateString('en-GB')} · <span class="badge ${e.status==='replied'?'badge-replied':'badge-avail'}">${e.status}</span></div>
+        <div class="meta">${new Date(e.createdAt).toLocaleDateString('en-GB')} · <span class="badge ${e.status==='replied'?'badge-replied':'badge-avail'}">${t(e.status) || e.status}</span></div>
         ${e.reply ? `<div style="margin-top:8px;padding:8px;background:#f5f5f3;border-radius:8px;font-size:13px"><strong>${t('landlordReply')}</strong><br>${escapeHtml(e.reply)}</div>` : ''}
         ${e.status !== 'replied' ? `
         <div style="display:flex;gap:6px;margin-top:8px">
@@ -642,7 +642,7 @@ async function loadLandlordEnquiries() {
         <strong>${escapeHtml(e.roomTitle)}</strong>
         <div class="meta">${t('from')}: ${escapeHtml(e.tenantName)}</div>
         <div style="font-size:13px;margin:6px 0">"${escapeHtml(e.message)}"</div>
-        <div class="meta">${new Date(e.createdAt).toLocaleDateString('en-GB')} · <span class="badge ${e.status==='replied'?'badge-replied':'badge-avail'}">${e.status}</span></div>
+        <div class="meta">${new Date(e.createdAt).toLocaleDateString('en-GB')} · <span class="badge ${e.status==='replied'?'badge-replied':'badge-avail'}">${t(e.status) || e.status}</span></div>
         ${e.reply ? `<div style="margin-top:8px;padding:8px;background:#f5f5f3;border-radius:8px;font-size:13px"><strong>${t('yourReplyLabel')}</strong><br>${escapeHtml(e.reply)}</div>` : `<button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="openReply('${e._id}','${escapeHtml(e.roomTitle).replace(/'/g,"\\'")}','${escapeHtml(e.tenantName).replace(/'/g,"\\'")}')">${t('reply')}</button><button class="btn btn-primary btn-sm" style="margin-top:8px;margin-left:6px" onclick="sendOffer('${e._id}')">${t('offerRoom')}</button>`}
       </div>`).join('');
   } catch(e) { el.innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
@@ -1190,7 +1190,7 @@ async function loadMyBookings() {
               ${b.message ? `<div style="font-size:13px;margin:6px 0">"${escapeHtml(b.message)}"</div>` : ''}
               <div class="meta">${new Date(b.createdAt).toLocaleDateString('en-GB')} · ${bookingStatusBadge(b.status)}</div>
             </div>
-            ${b.status === 'pending' ? `<button class="btn btn-danger btn-sm" onclick="cancelBookingRequest('${b._id}')">Cancel</button>` : ''}
+            ${b.status === 'pending' ? `<button class="btn btn-danger btn-sm" onclick="cancelBookingRequest('${b._id}')">${t('cancel')}</button>` : ''}
           </div>
         </div>`).join('');
   } catch (e) { el.innerHTML = '<div class="alert alert-error">' + e.message + '</div>'; }

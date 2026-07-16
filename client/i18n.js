@@ -386,3 +386,6 @@ applyTranslations = function() {
 
 Object.assign(TRANSLATIONS.en, { from: 'From', editBtn: 'Edit', deleteBtn: 'Delete', reply: 'Reply' });
 Object.assign(TRANSLATIONS.pt, { from: 'De', editBtn: 'Editar', deleteBtn: 'Eliminar', reply: 'Responder' });
+
+Object.assign(TRANSLATIONS.en, { pending: 'pending', replied: 'replied', approved: 'approved', rejected: 'rejected', cancel: 'Cancel' });
+Object.assign(TRANSLATIONS.pt, { pending: 'pendente', replied: 'respondido', approved: 'aprovado', rejected: 'rejeitado', cancel: 'Cancelar' });
