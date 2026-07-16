@@ -6,96 +6,87 @@ const TRANSLATIONS = {
     // Hero
     heroTitle: 'Find a room to rent in London',
     heroSub: 'Rooms listed directly by landlords — no agency fees',
-    searchPlaceholder: 'Area or street...',
-    search: 'Search',
-    // Filters
-    anyPrice: 'Any price', upTo600: 'Up to £600', upTo800: 'Up to £800', upTo1000: 'Up to £1000',
-    anyType: 'Any type', billsIncl: 'Bills incl.', availableNow: 'Available now',
-    clear: 'Clear', list: 'List', map: 'Map',
-    newestFirst: 'Newest first', oldestFirst: 'Oldest first',
-    priceLow: 'Price: low to high', priceHigh: 'Price: high to low',
-    rooms: 'rooms', room: 'room',
-    // Cards
-    perMonth: '/mo', viewRoom: 'View', compare: 'Compare',
+    // Search & Filters
+    search: 'Search', areaOrStreet: 'Area or street...',
+    anyPrice: 'Any price', anyType: 'Any type',
+    billsIncl: 'Bills incl.', availableNow: 'Available now',
+    newestFirst: 'Newest first', oldest: 'Oldest first',
+    priceAsc: 'Price: low to high', priceDesc: 'Price: high to low',
+    clearFilters: 'Clear filters', noRoomsFound: 'No rooms found',
+    tryAdjusting: 'Try adjusting your search or filters',
+    // Room card
+    viewRoom: 'View', viewRoomBtn: 'View room', compare: 'Compare',
     billsInclLabel: 'Bills incl.', billsNotIncl: 'Bills not incl.',
+    billsIncluded: 'Bills included', billsNotIncluded: 'Bills not included',
     availNow: 'Available now', comingSoon: 'Coming soon',
-    // Detail
-    perMonthFull: '/month', billsIncluded: 'Bills included', billsNotIncluded: 'Bills not included',
-    contact: 'Contact', signInToEnquire: 'Sign in to send an enquiry',
-    viewingAsLandlord: "You're viewing this as a landlord.",
-    sendEnquiry: 'Send enquiry',
-    markAsMyRoom: 'Mark as my room', thisIsMyRoom: '✓ This is my room',
-    // Empty states
-    noRoomsFound: 'No rooms found', tryAdjusting: 'Try adjusting your search or filters',
-    clearFilters: 'Clear filters', noSavedRooms: 'No saved rooms yet',
-    browseToSave: 'Browse rooms and tap View to find your favourites',
-    noEnquiries: 'No enquiries sent yet', noEnquiriesReceived: 'No enquiries received yet',
-    noRoomsListed: 'No rooms listed yet', addFirstRoom: 'Add your first room to start receiving enquiries',
-    noRentalSet: 'No rental set yet', visitRoom: 'Visit a room you\'re renting and tap "Mark as my room"',
-    // Auth
-    createAccount: 'Create account', name: 'Full name', email: 'Email', password: 'Password',
-    passwordHint: 'At least 8 characters', iAma: 'I am a...', tenant: 'Tenant', landlord: 'Landlord',
-    haveAccount: 'Have an account?', noAccount: 'No account?',
-    signingIn: 'Signing in...', creating: 'Creating...',
-    // Profile
-    myProfile: 'My profile', accountType: 'Account type', changePassword: 'Change password (optional)',
-    currentPassword: 'Current password', newPassword: 'New password', saveChanges: 'Save changes',
-    profileUpdated: '✓ Profile updated', saving: 'Saving...',
-    // Dashboard
-    welcomeBack: 'Welcome back', tenantDashboard: 'Tenant dashboard', landlordDashboard: 'Landlord dashboard',
-    myEnquiries: 'My enquiries', myListings: 'My listings', receivedEnquiries: 'Received enquiries',
-    addRoom: '+ Add room', myRental: 'My rental',
-    // Rooms modal
-    listARoom: 'List a room', editRoom: 'Edit room',
-    title: 'Title', description: 'Description', price: 'Price (£/month)', type: 'Type',
-    area: 'Area', address: 'Address', billsIncludedCheck: 'Bills included',
-    availableNowCheck: 'Available now', photo: 'Photo (optional)',
-    removePhoto: 'Remove current photo', listRoom: 'List room', cancel: 'Cancel',
-    adding: 'Adding...', saving2: 'Saving...',
-    // Enquiry modal
-    sendEnquiryTitle: 'Send enquiry', message: 'Message',
-    messagePlaceholder: 'Hi, is this room still available?',
-    send: 'Send', sending: 'Sending...', close: 'Close',
-    enquirySent: '✓ Sent! The landlord will be in touch.',
-    // Reply modal
-    replyToEnquiry: 'Reply to enquiry', yourReply: 'Your reply',
-    sendReply: 'Send reply', landlordReply: 'Landlord reply:', yourReplyLabel: 'Your reply:',
-    reply: 'Reply', pending: 'pending', replied: 'replied',
-    // Edit enquiry
-    editEnquiry: 'Edit enquiry',
-    // Compare
-    compareRooms: 'Compare rooms', back: '← Back',
-    photoCol: 'Photo', titleCol: 'Title', priceCol: 'Price', typeCol: 'Type',
-    areaCol: 'Area', addressCol: 'Address', billsCol: 'Bills included',
-    availCol: 'Available now', landlordCol: 'Landlord',
-    yes: 'Yes', no: 'No', viewRoomBtn: 'View room',
-    selected: 'selected', clearCompare: 'Clear',
-    // Rental / Payments
-    rentTracker: 'rent tracker — tap an unpaid month to pay',
-    paymentHistory: 'Payment history', paid: '✓ Paid', unpaid: 'Unpaid',
-    paidLabel: 'Paid', cardEnding: 'card ending',
-    payRent: 'Pay rent', cardholderName: 'Cardholder name', cardNumber: 'Card number',
-    expiry: 'Expiry', cvc: 'CVC', payNow: 'Pay now', processing: 'Processing...',
-    demoNotice: 'This is a demo — no real payment is processed.',
-    paymentSuccess: '✓ Payment successful! Receipt added to your history.',
-    deletePayment: 'Delete', editBtn: 'Edit', deleteBtn: 'Delete',
+    perMonth: '/mo', perMonthFull: '/month',
     // Pagination
-    prev: '← Prev', next: 'Next →', page: 'Page', of: 'of',
-    // Errors
-    fillAllFields: 'Fill in all fields', validEmail: 'Enter a valid email',
-    passwordRequired: 'Password is required', nameRequired: 'Name is required',
-    atLeast8: 'At least 8 characters', titleRequired: 'Title is required',
-    descMin: 'Description must be at least 10 characters', validPrice: 'Enter a valid price',
-    areaRequired: 'Area is required', addressRequired: 'Address is required',
-    msgMin: 'Message must be at least 5 characters', replyMin: 'Reply is too short',
-    cardNameRequired: 'Cardholder name is required', validCard: 'Enter a valid card number (12-19 digits)',
-    expiryFormat: 'Format MM/YY', validCvc: '3-4 digits',
-    newPwMin: 'New password must be at least 8 characters',
+    prev: 'Prev', next: 'Next', page: 'Page', of: 'of',
+    // Auth
+    emailPlaceholder: 'Email', passwordPlaceholder: 'Password',
+    namePlaceholder: 'Full name', confirmPassword: 'Confirm password',
+    createAccount: 'Create account', alreadyHaveAccount: 'Already have an account?',
+    noAccount: 'No account?', forgotPassword: 'Forgot password?',
+    signingIn: 'Signing in...', creatingAccount: 'Creating account...',
+    landlord: 'Landlord', tenant: 'Tenant', iAm: 'I am a',
+    // Dashboard
+    welcomeBack: 'Welcome back',
+    tenantDashboard: 'Tenant dashboard', landlordDashboard: 'Landlord dashboard',
+    myRental: 'My rental', myEnquiries: 'My enquiries',
+    myListings: 'My listings', receivedEnquiries: 'Received enquiries',
+    myBookings: 'My bookings', bookingRequests: 'Booking requests',
+    messagesReceived: 'Messages received',
+    myProfile: 'My profile',
+    // Empty states
+    noRoomsListed: 'No rooms listed yet',
+    addFirstRoom: 'Add your first room to start receiving enquiries',
+    noRentalSet: 'No rental set yet',
+    visitRoom: 'Visit a room you\'re renting and tap "Mark as my room"',
+    noEnquiries: 'No enquiries sent yet',
+    noEnquiriesReceived: 'No enquiries received yet',
+    noSavedRooms: 'No saved rooms yet',
+    browseToSave: 'Browse rooms and tap View to find your favourites',
+    noOffers: 'No pending offers',
+    noReviews: 'No reviews yet',
+    // Room detail
+    contact: 'Contact', sendEnquiry: 'Send enquiry',
+    requestToBook: 'Request to book', writeReview: 'Write a review',
+    reviews: 'Reviews', review: 'review', reviewsCount: 'reviews',
+    viewingAsLandlord: 'You\'re viewing this as a landlord.',
+    // Enquiries
+    from: 'From', to: 'To',
+    landlordReply: 'Landlord\'s reply:', yourReplyLabel: 'Your reply:',
+    reply: 'Reply', sendReply: 'Send reply',
+    editBtn: 'Edit', deleteBtn: 'Delete', cancel: 'Cancel', close: 'Close',
+    // Offers
+    offerRoom: '🏠 Offer room', roomOffers: '🏠 Room offers',
+    offerReceived: 'The landlord has offered you this room. Would you like to accept?',
+    acceptOffer: '✓ Accept', declineOffer: '✗ Decline',
+    // Status
+    pending: 'pending', replied: 'replied', approved: 'approved',
+    rejected: 'rejected', accepted: 'accepted', declined: 'declined',
+    // Payments
+    paymentHistory: 'Payment history', payNow: 'Pay now', payEarly: 'Pay early',
+    paidLabel: 'Paid', cardEnding: 'card ending',
+    rentTracker: 'rent tracker — tap an unpaid month to pay',
+    rentDue1st: 'rent due the 1st of each month',
+    overdue: 'Overdue', dueNow: 'Due now', upcoming: 'Upcoming', paid: 'Paid',
+    rentOverdue: 'rent is overdue', daysPastDue: 'days past the due date (1st).',
+    // Profile
+    fullName: 'Full name', accountType: 'Account type',
+    changePassword: 'Change password (optional)',
+    currentPasswordLabel: 'Current password', newPasswordLabel: 'New password',
+    saveChanges: 'Save changes', dangerZone: 'Danger zone',
+    deleteMyAccount: 'Delete my account',
+    // Add room
+    addRoom: '+ Add room', listRoom: 'List room', editRoom: 'Edit room',
     // Misc
-    delete: 'Delete this room? This cannot be undone.',
-    deleteEnquiry: 'Delete this enquiry? This cannot be undone.',
-    deletePaymentConfirm: 'Remove this payment record?',
-    offline: 'You are offline',
+    processing: 'Processing...', yes: 'Yes', no: 'No',
+    demoNotice: 'This is a demo — no real payment is processed.',
+    thisIsMyRoom: '✓ This is my room', markAsMyRoom: 'Mark as my room',
+    notifications: 'Notifications', markAllRead: 'Mark all read',
+    noNotifications: 'No notifications yet',
+    // Months
     months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
   },
   pt: {
@@ -105,96 +96,87 @@ const TRANSLATIONS = {
     // Hero
     heroTitle: 'Encontre um quarto para alugar em Londres',
     heroSub: 'Quartos listados diretamente pelos proprietários — sem taxas de agência',
-    searchPlaceholder: 'Área ou rua...',
-    search: 'Pesquisar',
-    // Filters
-    anyPrice: 'Qualquer preço', upTo600: 'Até £600', upTo800: 'Até £800', upTo1000: 'Até £1000',
-    anyType: 'Qualquer tipo', billsIncl: 'Contas incl.', availableNow: 'Disponível agora',
-    clear: 'Limpar', list: 'Lista', map: 'Mapa',
-    newestFirst: 'Mais recentes', oldestFirst: 'Mais antigos',
-    priceLow: 'Preço: menor para maior', priceHigh: 'Preço: maior para menor',
-    rooms: 'quartos', room: 'quarto',
-    // Cards
-    perMonth: '/mês', viewRoom: 'Ver', compare: 'Comparar',
+    // Search & Filters
+    search: 'Pesquisar', areaOrStreet: 'Área ou rua...',
+    anyPrice: 'Qualquer preço', anyType: 'Qualquer tipo',
+    billsIncl: 'Bills incl.', availableNow: 'Disponível agora',
+    newestFirst: 'Mais recentes', oldest: 'Mais antigos',
+    priceAsc: 'Preço: menor para maior', priceDesc: 'Preço: maior para menor',
+    clearFilters: 'Limpar filtros', noRoomsFound: 'Nenhum quarto encontrado',
+    tryAdjusting: 'Tente ajustar a sua pesquisa ou filtros',
+    // Room card
+    viewRoom: 'Ver', viewRoomBtn: 'Ver quarto', compare: 'Comparar',
     billsInclLabel: 'Contas incl.', billsNotIncl: 'Contas não incl.',
+    billsIncluded: 'Contas incluídas', billsNotIncluded: 'Contas não incluídas',
     availNow: 'Disponível agora', comingSoon: 'Em breve',
-    // Detail
-    perMonthFull: '/mês', billsIncluded: 'Contas incluídas', billsNotIncluded: 'Contas não incluídas',
-    contact: 'Contactar', signInToEnquire: 'Inicie sessão para enviar uma mensagem',
-    viewingAsLandlord: 'Está a ver como proprietário.',
-    sendEnquiry: 'Enviar mensagem',
-    markAsMyRoom: 'Marcar como o meu quarto', thisIsMyRoom: '✓ Este é o meu quarto',
-    // Empty states
-    noRoomsFound: 'Nenhum quarto encontrado', tryAdjusting: 'Tente ajustar a pesquisa ou filtros',
-    clearFilters: 'Limpar filtros', noSavedRooms: 'Nenhum quarto guardado',
-    browseToSave: 'Explore quartos e toque em Ver para guardar os seus favoritos',
-    noEnquiries: 'Nenhuma mensagem enviada ainda', noEnquiriesReceived: 'Nenhuma mensagem recebida ainda',
-    noRoomsListed: 'Nenhum quarto listado ainda', addFirstRoom: 'Adicione o seu primeiro quarto para começar a receber mensagens',
-    noRentalSet: 'Nenhum aluguer definido', visitRoom: 'Visite um quarto que está a arrendar e toque em "Marcar como o meu quarto"',
-    // Auth
-    createAccount: 'Criar conta', name: 'Nome completo', email: 'Email', password: 'Palavra-passe',
-    passwordHint: 'Pelo menos 8 caracteres', iAma: 'Sou...', tenant: 'Inquilino', landlord: 'Proprietário',
-    haveAccount: 'Já tem conta?', noAccount: 'Não tem conta?',
-    signingIn: 'A entrar...', creating: 'A criar...',
-    // Profile
-    myProfile: 'O meu perfil', accountType: 'Tipo de conta', changePassword: 'Alterar palavra-passe (opcional)',
-    currentPassword: 'Palavra-passe atual', newPassword: 'Nova palavra-passe', saveChanges: 'Guardar alterações',
-    profileUpdated: '✓ Perfil atualizado', saving: 'A guardar...',
-    // Dashboard
-    welcomeBack: 'Bem-vindo de volta', tenantDashboard: 'Painel do inquilino', landlordDashboard: 'Painel do proprietário',
-    myEnquiries: 'As minhas mensagens', myListings: 'Os meus anúncios', receivedEnquiries: 'Mensagens recebidas',
-    addRoom: '+ Adicionar quarto', myRental: 'O meu aluguer',
-    // Rooms modal
-    listARoom: 'Listar um quarto', editRoom: 'Editar quarto',
-    title: 'Título', description: 'Descrição', price: 'Preço (£/mês)', type: 'Tipo',
-    area: 'Área', address: 'Morada', billsIncludedCheck: 'Contas incluídas',
-    availableNowCheck: 'Disponível agora', photo: 'Foto (opcional)',
-    removePhoto: 'Remover foto atual', listRoom: 'Listar quarto', cancel: 'Cancelar',
-    adding: 'A adicionar...', saving2: 'A guardar...',
-    // Enquiry modal
-    sendEnquiryTitle: 'Enviar mensagem', message: 'Mensagem',
-    messagePlaceholder: 'Olá, o quarto ainda está disponível?',
-    send: 'Enviar', sending: 'A enviar...', close: 'Fechar',
-    enquirySent: '✓ Enviado! O proprietário entrará em contacto.',
-    // Reply modal
-    replyToEnquiry: 'Responder à mensagem', yourReply: 'A sua resposta',
-    sendReply: 'Enviar resposta', landlordReply: 'Resposta do proprietário:', yourReplyLabel: 'A sua resposta:',
-    reply: 'Responder', pending: 'pendente', replied: 'respondido',
-    // Edit enquiry
-    editEnquiry: 'Editar mensagem',
-    // Compare
-    compareRooms: 'Comparar quartos', back: '← Voltar',
-    photoCol: 'Foto', titleCol: 'Título', priceCol: 'Preço', typeCol: 'Tipo',
-    areaCol: 'Área', addressCol: 'Morada', billsCol: 'Contas incluídas',
-    availCol: 'Disponível agora', landlordCol: 'Proprietário',
-    yes: 'Sim', no: 'Não', viewRoomBtn: 'Ver quarto',
-    selected: 'selecionados', clearCompare: 'Limpar',
-    // Rental / Payments
-    rentTracker: 'rastreador de renda — toque num mês por pagar',
-    paymentHistory: 'Histórico de pagamentos', paid: '✓ Pago', unpaid: 'Por pagar',
-    paidLabel: 'Pago', cardEnding: 'cartão terminado em',
-    payRent: 'Pagar renda', cardholderName: 'Nome no cartão', cardNumber: 'Número do cartão',
-    expiry: 'Validade', cvc: 'CVC', payNow: 'Pagar agora', processing: 'A processar...',
-    demoNotice: 'Esta é uma demonstração — nenhum pagamento real é processado.',
-    paymentSuccess: '✓ Pagamento efetuado! Recibo adicionado ao histórico.',
-    deletePayment: 'Eliminar', editBtn: 'Editar', deleteBtn: 'Eliminar',
+    perMonth: '/mês', perMonthFull: '/mês',
     // Pagination
-    prev: '← Anterior', next: 'Seguinte →', page: 'Página', of: 'de',
-    // Errors
-    fillAllFields: 'Preencha todos os campos', validEmail: 'Introduza um email válido',
-    passwordRequired: 'A palavra-passe é obrigatória', nameRequired: 'O nome é obrigatório',
-    atLeast8: 'Pelo menos 8 caracteres', titleRequired: 'O título é obrigatório',
-    descMin: 'A descrição deve ter pelo menos 10 caracteres', validPrice: 'Introduza um preço válido',
-    areaRequired: 'A área é obrigatória', addressRequired: 'A morada é obrigatória',
-    msgMin: 'A mensagem deve ter pelo menos 5 caracteres', replyMin: 'A resposta é muito curta',
-    cardNameRequired: 'O nome no cartão é obrigatório', validCard: 'Introduza um número de cartão válido (12-19 dígitos)',
-    expiryFormat: 'Formato MM/AA', validCvc: '3-4 dígitos',
-    newPwMin: 'A nova palavra-passe deve ter pelo menos 8 caracteres',
+    prev: 'Anterior', next: 'Seguinte', page: 'Página', of: 'de',
+    // Auth
+    emailPlaceholder: 'Email', passwordPlaceholder: 'Palavra-passe',
+    namePlaceholder: 'Nome completo', confirmPassword: 'Confirmar palavra-passe',
+    createAccount: 'Criar conta', alreadyHaveAccount: 'Já tem conta?',
+    noAccount: 'Sem conta?', forgotPassword: 'Esqueceu a palavra-passe?',
+    signingIn: 'A entrar...', creatingAccount: 'A criar conta...',
+    landlord: 'Proprietário', tenant: 'Inquilino', iAm: 'Sou',
+    // Dashboard
+    welcomeBack: 'Bem-vindo de volta',
+    tenantDashboard: 'Painel do inquilino', landlordDashboard: 'Painel do proprietário',
+    myRental: 'O meu aluguer', myEnquiries: 'As minhas consultas',
+    myListings: 'Os meus anúncios', receivedEnquiries: 'Consultas recebidas',
+    myBookings: 'As minhas reservas', bookingRequests: 'Pedidos de reserva',
+    messagesReceived: 'Mensagens recebidas',
+    myProfile: 'O meu perfil',
+    // Empty states
+    noRoomsListed: 'Ainda sem quartos listados',
+    addFirstRoom: 'Adicione o seu primeiro quarto para começar a receber consultas',
+    noRentalSet: 'Nenhum aluguer definido',
+    visitRoom: 'Visite um quarto que está a alugar e toque em "Marcar como o meu quarto"',
+    noEnquiries: 'Ainda sem consultas enviadas',
+    noEnquiriesReceived: 'Ainda sem consultas recebidas',
+    noSavedRooms: 'Sem quartos guardados',
+    browseToSave: 'Explore os quartos e toque em Ver para guardar os seus favoritos',
+    noOffers: 'Sem ofertas pendentes',
+    noReviews: 'Sem avaliações ainda',
+    // Room detail
+    contact: 'Contactar', sendEnquiry: 'Enviar consulta',
+    requestToBook: 'Solicitar reserva', writeReview: 'Escrever avaliação',
+    reviews: 'Avaliações', review: 'avaliação', reviewsCount: 'avaliações',
+    viewingAsLandlord: 'Está a ver isto como proprietário.',
+    // Enquiries
+    from: 'De', to: 'Para',
+    landlordReply: 'Resposta do proprietário:', yourReplyLabel: 'A sua resposta:',
+    reply: 'Responder', sendReply: 'Enviar resposta',
+    editBtn: 'Editar', deleteBtn: 'Eliminar', cancel: 'Cancelar', close: 'Fechar',
+    // Offers
+    offerRoom: '🏠 Oferecer quarto', roomOffers: '🏠 Ofertas de quarto',
+    offerReceived: 'O proprietário ofereceu-lhe este quarto. Deseja aceitar?',
+    acceptOffer: '✓ Aceitar', declineOffer: '✗ Recusar',
+    // Status
+    pending: 'pendente', replied: 'respondido', approved: 'aprovado',
+    rejected: 'rejeitado', accepted: 'aceite', declined: 'recusado',
+    // Payments
+    paymentHistory: 'Histórico de pagamentos', payNow: 'Pagar agora', payEarly: 'Pagar antecipadamente',
+    paidLabel: 'Pago', cardEnding: 'cartão terminado em',
+    rentTracker: 'rastreador de renda — toque num mês por pagar',
+    rentDue1st: 'renda devida no dia 1 de cada mês',
+    overdue: 'Em atraso', dueNow: 'Vence agora', upcoming: 'Próximo', paid: 'Pago',
+    rentOverdue: 'renda em atraso', daysPastDue: 'dias após a data de vencimento (dia 1).',
+    // Profile
+    fullName: 'Nome completo', accountType: 'Tipo de conta',
+    changePassword: 'Alterar palavra-passe (opcional)',
+    currentPasswordLabel: 'Palavra-passe atual', newPasswordLabel: 'Nova palavra-passe',
+    saveChanges: 'Guardar alterações', dangerZone: 'Zona de perigo',
+    deleteMyAccount: 'Eliminar a minha conta',
+    // Add room
+    addRoom: '+ Adicionar quarto', listRoom: 'Listar quarto', editRoom: 'Editar quarto',
     // Misc
-    delete: 'Eliminar este quarto? Esta ação não pode ser desfeita.',
-    deleteEnquiry: 'Eliminar esta mensagem? Esta ação não pode ser desfeita.',
-    deletePaymentConfirm: 'Remover este registo de pagamento?',
-    offline: 'Está offline',
+    processing: 'A processar...', yes: 'Sim', no: 'Não',
+    demoNotice: 'Esta é uma demonstração — nenhum pagamento real é processado.',
+    thisIsMyRoom: '✓ Este é o meu quarto', markAsMyRoom: 'Marcar como o meu quarto',
+    notifications: 'Notificações', markAllRead: 'Marcar tudo como lido',
+    noNotifications: 'Sem notificações ainda',
+    // Months
     months: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
   }
 };
@@ -208,71 +190,13 @@ function t(key) {
 function setLang(lang) {
   currentLang = lang;
   localStorage.setItem('lang', lang);
-  document.getElementById('lang-en').classList.toggle('active', lang === 'en');
-  document.getElementById('lang-pt').classList.toggle('active', lang === 'pt');
-  document.getElementById('lang-en').setAttribute('aria-pressed', String(lang === 'en'));
-  document.getElementById('lang-pt').setAttribute('aria-pressed', String(lang === 'pt'));
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
   applyTranslations();
-  // Re-render current page content
-  loadRooms();
   const activePage = document.querySelector('.page.active');
   if (activePage) {
-    const id = activePage.id.replace('page-', '');
-    if (id === 'dashboard') loadDashboard();
-    if (id === 'saved') loadSaved();
-    if (id === 'profile') loadProfile();
+    const pageId = activePage.id.replace('-page','');
+    if (typeof showPage === 'function') showPage(pageId);
   }
-}
-
-function applyTranslations() {
-  // Apply data-i18n attributes
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (t(key)) el.textContent = t(key);
-  });
-
-  // Nav
-  document.getElementById('nav-browse').textContent = t('browse');
-  document.getElementById('nav-saved').textContent = t('saved');
-  document.getElementById('nav-dash').textContent = t('dashboard');
-  document.getElementById('nav-profile').textContent = t('profile');
-  document.getElementById('btn-login').textContent = t('signIn');
-  document.getElementById('btn-register').textContent = t('signUp');
-  document.getElementById('btn-logout').textContent = t('signOut');
-  const navUser = document.getElementById('nav-user');
-  if (user) navUser.textContent = t('hi') + ', ' + user.name.split(' ')[0];
-
-  // Hero
-  document.querySelector('.hero h1').textContent = t('heroTitle');
-  document.querySelector('.hero p').textContent = t('heroSub');
-  document.getElementById('search-input').placeholder = t('searchPlaceholder');
-  document.querySelector('.search .btn').textContent = t('search');
-
-  // Filters
-  const price = document.getElementById('f-price');
-  price.options[0].text = t('anyPrice');
-  price.options[1].text = t('upTo600');
-  price.options[2].text = t('upTo800');
-  price.options[3].text = t('upTo1000');
-
-  const type = document.getElementById('f-type');
-  type.options[0].text = t('anyType');
-
-  document.querySelector('label[for="f-bills-label"]') && (document.querySelector('label[for="f-bills-label"]').lastChild.textContent = ' ' + t('billsIncl'));
-
-  const sort = document.getElementById('f-sort');
-  sort.options[0].text = t('newestFirst');
-  sort.options[1].text = t('oldestFirst');
-  sort.options[2].text = t('priceLow');
-  sort.options[3].text = t('priceHigh');
-
-  document.getElementById('view-list-btn').textContent = '☰ ' + t('list');
-  document.getElementById('view-map-btn').textContent = '🗺 ' + t('map');
-
-  // Auth pages
-  safeSet('login-btn', t('signIn'));
-  safeSet('register-btn', t('createAccount'));
-  safeSet('profile-btn', t('saveChanges'));
 }
 
 function safeSet(id, val) {
@@ -280,60 +204,7 @@ function safeSet(id, val) {
   if (el) el.textContent = val;
 }
 
-// Extend both languages with offers/notifications translations
-Object.assign(TRANSLATIONS.en, {
-  offerRoom: '🏠 Offer room',
-  roomOffers: '🏠 Room offers',
-  offerReceived: 'The landlord has offered you this room. Would you like to accept?',
-  acceptOffer: '✓ Accept',
-  declineOffer: '✗ Decline',
-  sendOffer: 'Send a room offer to this tenant?',
-  offerSent: '✓ Offer sent! The tenant will see it on their dashboard.',
-  noOffers: 'No pending offers',
-  notifications: 'Notifications',
-  markAllRead: 'Mark all read',
-  noNotifications: 'No notifications yet',
-  offerAccepted: 'accepted',
-  offerDeclined: 'declined',
-  offerPending: 'pending',
-});
-
-Object.assign(TRANSLATIONS.pt, {
-  offerRoom: '🏠 Oferecer quarto',
-  roomOffers: '🏠 Ofertas de quarto',
-  offerReceived: 'O proprietário ofereceu-lhe este quarto. Deseja aceitar?',
-  acceptOffer: '✓ Aceitar',
-  declineOffer: '✗ Recusar',
-  sendOffer: 'Enviar uma oferta de quarto a este inquilino?',
-  offerSent: '✓ Oferta enviada! O inquilino verá no seu painel.',
-  noOffers: 'Nenhuma oferta pendente',
-  notifications: 'Notificações',
-  markAllRead: 'Marcar tudo como lido',
-  noNotifications: 'Sem notificações ainda',
-  offerAccepted: 'aceite',
-  offerDeclined: 'recusado',
-  offerPending: 'pendente',
-});
-Object.assign(TRANSLATIONS.en, {
-  rentDue1st: 'rent due the 1st of each month',
-  noReviews: 'No reviews yet',
-  reviews: 'Reviews',
-  review: 'review',
-  reviewsCount: 'reviews'
-});
-Object.assign(TRANSLATIONS.pt, {
-  rentDue1st: 'renda devida no dia 1 de cada mes',
-  noReviews: 'Sem avaliacoes ainda',
-  reviews: 'Avaliacoes',
-  review: 'avaliacao',
-  reviewsCount: 'avaliacoes'
-});
-
-// Single consolidated patch for all static HTML translations
-const _origApply = applyTranslations;
-applyTranslations = function() {
-  _origApply();
-
+function applyTranslations() {
   // Process all data-i18n attributes
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
@@ -341,17 +212,38 @@ applyTranslations = function() {
     if (val) el.textContent = val;
   });
 
-  // Static element IDs
+  // Nav
+  safeSet('nav-browse', t('browse'));
+  safeSet('nav-saved', t('saved'));
+  safeSet('nav-dashboard', t('dashboard'));
+  safeSet('nav-profile', t('profile'));
+  safeSet('nav-signin', t('signIn'));
+  safeSet('nav-signup', t('signUp'));
+  safeSet('nav-signout', t('signOut'));
+
+  // Filter bar
   safeSet('bills-incl-label', t('billsIncl'));
   safeSet('avail-now-label', t('availableNow'));
   safeSet('no-rooms-text', t('noRoomsFound'));
   safeSet('try-adjusting-text', t('tryAdjusting'));
   safeSet('clear-filters-text', t('clearFilters'));
+
+  // Dashboard tabs
   safeSet('tab-listings', t('myListings'));
   safeSet('tab-enquiries', t('receivedEnquiries'));
   safeSet('tab-bookings', t('bookingRequests'));
+
+  // Buttons
   safeSet('h-add-room', t('addRoom'));
   safeSet('login-btn', t('signIn'));
   safeSet('register-btn', t('createAccount'));
   safeSet('profile-btn', t('saveChanges'));
-};
+}
+
+// Initialise language on page load
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === currentLang);
+  });
+  applyTranslations();
+});
