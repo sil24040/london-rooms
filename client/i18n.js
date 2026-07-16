@@ -347,3 +347,39 @@ applyTranslations = function() {
   safeSet('tab-listings', t('myListings'));
   safeSet('tab-enquiries', t('receivedEnquiries'));
 };
+
+Object.assign(TRANSLATIONS.en, {
+  bookingRequests: 'Booking requests',
+  dangerZone: 'Danger zone',
+  deleteMyAccount: 'Delete my account',
+  fullName: 'Full name',
+  emailLabel: 'Email',
+  currentPasswordLabel: 'Current password',
+  newPasswordLabel: 'New password',
+});
+Object.assign(TRANSLATIONS.pt, {
+  bookingRequests: 'Pedidos de reserva',
+  dangerZone: 'Zona de perigo',
+  deleteMyAccount: 'Eliminar a minha conta',
+  fullName: 'Nome completo',
+  emailLabel: 'Email',
+  currentPasswordLabel: 'Palavra-passe atual',
+  newPasswordLabel: 'Nova palavra-passe',
+});
+
+const _dashPatch = applyTranslations;
+applyTranslations = function() {
+  _dashPatch();
+  safeSet('h-my-listings', t('myListings'));
+  safeSet('h-my-profile', t('myProfile'));
+  safeSet('h-full-name', t('fullName'));
+  safeSet('h-email', t('emailLabel'));
+  safeSet('h-account-type', t('accountType'));
+  safeSet('h-change-pw', t('changePassword'));
+  safeSet('h-current-pw', t('currentPasswordLabel'));
+  safeSet('h-new-pw', t('newPasswordLabel'));
+  safeSet('h-danger-zone', t('dangerZone'));
+  safeSet('h-delete-account', t('deleteMyAccount'));
+  safeSet('h-add-room', t('addRoom'));
+  safeSet('tab-bookings', t('bookingRequests'));
+};

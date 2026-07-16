@@ -152,13 +152,13 @@
     <div id="landlord-dash" style="display:none;margin-top:0.5rem">
       <div class="tabs">
         <button class="active" id="tab-listings" type="button" onclick="switchLandlordTab('listings')">My listings</button>
-        <button id="tab-bookings" type="button" onclick="switchLandlordTab('bookings')">Booking requests</button>
+        <button id="tab-bookings" type="button" onclick="switchLandlordTab('bookings')" id="tab-bookings">Booking requests</button>
         <button id="tab-enquiries" type="button" onclick="switchLandlordTab('enquiries')">Received enquiries</button>
       </div>
       <div id="landlord-listings-tab">
         <div class="row" style="margin-bottom:10px">
-          <h2 style="font-size:16px">My listings</h2>
-          <button class="btn btn-primary btn-sm" type="button" onclick="openAddRoom()">+ Add room</button>
+          <h2 style="font-size:16px" id="h-my-listings">My listings</h2>
+          <button class="btn btn-primary btn-sm" type="button" onclick="openAddRoom()" id="h-add-room">+ Add room</button>
         </div>
         <div id="landlord-rooms"></div>
       </div>
@@ -174,31 +174,31 @@
 
 <div id="page-profile" class="page">
   <div class="authcard">
-    <h1>My profile</h1>
+    <h1 id="h-my-profile">My profile</h1>
     <div id="profile-error" class="alert alert-error" style="display:none"></div>
     <div id="profile-success" class="alert alert-success" style="display:none">✓ Profile updated</div>
     <div class="field">
-      <label for="profile-name">Full name</label>
+      <label for="profile-name" id="h-full-name">Full name</label>
       <input id="profile-name" class="input">
       <div class="field-error" id="profile-name-err" style="display:none"></div>
     </div>
     <div class="field">
-      <label for="profile-email">Email</label>
+      <label for="profile-email" id="h-email">Email</label>
       <input id="profile-email" class="input" type="email">
       <div class="field-error" id="profile-email-err" style="display:none"></div>
     </div>
     <div class="field">
-      <label for="profile-role">Account type</label>
+      <label for="profile-role" id="h-account-type">Account type</label>
       <input id="profile-role" class="input" disabled>
     </div>
     <hr style="margin:1rem 0;border:none;border-top:1px solid #eee">
-    <p style="font-size:13px;color:#666;margin-bottom:10px">Change password (optional)</p>
+    <p style="font-size:13px;color:#666;margin-bottom:10px" id="h-change-pw">Change password (optional)</p>
     <div class="field">
-      <label for="profile-current-pw">Current password</label>
+      <label for="profile-current-pw" id="h-current-pw">Current password</label>
       <input id="profile-current-pw" class="input" type="password">
     </div>
     <div class="field">
-      <label for="profile-new-pw">New password</label>
+      <label for="profile-new-pw" id="h-new-pw">New password</label>
       <input id="profile-new-pw" class="input" type="password" placeholder="At least 8 characters">
       <div class="field-error" id="profile-pw-err" style="display:none"></div>
     </div>
@@ -207,7 +207,7 @@
     <hr style="margin:1rem 0;border:none;border-top:1px solid #eee">
     <p style="font-size:13px;color:#c0392b;font-weight:600;margin-bottom:6px">Danger zone</p>
     <p style="font-size:12px;color:#666;margin-bottom:10px">Deleting your account is permanent. All your listings, enquiries, and payment history will be removed and cannot be recovered.</p>
-    <button class="btn btn-outline" style="width:100%;border-color:#c0392b;color:#c0392b" type="button" onclick="openDeleteAccount()">Delete my account</button>
+    <button class="btn btn-outline" style="width:100%;border-color:#c0392b;color:#c0392b" type="button" onclick="openDeleteAccount()" id="h-delete-account">Delete my account</button>
   </div>
 </div>
 
@@ -216,7 +216,7 @@
     <h1>Sign in</h1>
     <div id="login-error" class="alert alert-error" style="display:none"></div>
     <div class="field">
-      <label for="login-email">Email</label>
+      <label for="login-email" id="h-email">Email</label>
       <input id="login-email" class="input" type="email" autocomplete="email">
       <div class="field-error" id="login-email-err" style="display:none"></div>
     </div>
@@ -235,12 +235,12 @@
     <h1>Create account</h1>
     <div id="register-error" class="alert alert-error" style="display:none"></div>
     <div class="field">
-      <label for="reg-name">Full name</label>
+      <label for="reg-name" id="h-full-name">Full name</label>
       <input id="reg-name" class="input" autocomplete="name">
       <div class="field-error" id="reg-name-err" style="display:none"></div>
     </div>
     <div class="field">
-      <label for="reg-email">Email</label>
+      <label for="reg-email" id="h-email">Email</label>
       <input id="reg-email" class="input" type="email" autocomplete="email">
       <div class="field-error" id="reg-email-err" style="display:none"></div>
     </div>
