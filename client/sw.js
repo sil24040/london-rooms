@@ -1,4 +1,4 @@
-const CACHE = 'londonrooms-v4';
+const CACHE = 'londonrooms-v5';
 const ASSETS = [
   '/',
   '/index.html',
