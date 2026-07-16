@@ -225,6 +225,12 @@ function setLang(lang) {
 }
 
 function applyTranslations() {
+  // Apply data-i18n attributes
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (t(key)) el.textContent = t(key);
+  });
+
   // Nav
   document.getElementById('nav-browse').textContent = t('browse');
   document.getElementById('nav-saved').textContent = t('saved');
