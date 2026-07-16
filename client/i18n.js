@@ -333,3 +333,17 @@ applyTranslations = function() {
   safeSet('try-adjusting-text', t('tryAdjusting'));
   safeSet('clear-filters-text', t('clearFilters'));
 };
+
+Object.assign(TRANSLATIONS, {});
+const _htmlPatch = applyTranslations;
+applyTranslations = function() {
+  _htmlPatch();
+  safeSet('h-my-rental', t('myRental'));
+  safeSet('h-my-enquiries', t('myEnquiries'));
+  safeSet('h-my-listings', t('myListings'));
+  safeSet('h-my-profile', t('myProfile'));
+  safeSet('h-account-type', t('accountType'));
+  safeSet('h-change-password', t('changePassword'));
+  safeSet('tab-listings', t('myListings'));
+  safeSet('tab-enquiries', t('receivedEnquiries'));
+};

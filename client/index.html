@@ -141,12 +141,12 @@
     <h1 id="dash-title">Dashboard</h1>
     <p id="dash-sub" style="color:#666;font-size:14px;margin-bottom:1rem"></p>
     <div id="tenant-dash" style="margin-top:0.5rem">
-      <h2 style="font-size:16px;margin-bottom:8px">My rental</h2>
+      <h2 style="font-size:16px;margin-bottom:8px" id="h-my-rental">My rental</h2>
       <div id="my-offers-section" style="margin-bottom:1.5rem"></div>
       <div id="my-rental-section" style="margin-bottom:1.5rem"></div>
       <h2 style="font-size:16px;margin-bottom:8px">My bookings</h2>
       <div id="my-bookings-section" style="margin-bottom:1.5rem"></div>
-      <h2 style="font-size:16px;margin-bottom:8px">My enquiries</h2>
+      <h2 style="font-size:16px;margin-bottom:8px" id="h-my-enquiries">My enquiries</h2>
       <div id="tenant-enquiries"></div>
     </div>
     <div id="landlord-dash" style="display:none;margin-top:0.5rem">
@@ -157,7 +157,7 @@
       </div>
       <div id="landlord-listings-tab">
         <div class="row" style="margin-bottom:10px">
-          <h2 style="font-size:16px">My listings</h2>
+          <h2 style="font-size:16px" id="h-my-listings">My listings</h2>
           <button class="btn btn-primary btn-sm" type="button" onclick="openAddRoom()">+ Add room</button>
         </div>
         <div id="landlord-rooms"></div>
@@ -174,7 +174,7 @@
 
 <div id="page-profile" class="page">
   <div class="authcard">
-    <h1>My profile</h1>
+    <h1 id="h-my-profile">My profile</h1>
     <div id="profile-error" class="alert alert-error" style="display:none"></div>
     <div id="profile-success" class="alert alert-success" style="display:none">✓ Profile updated</div>
     <div class="field">
@@ -188,11 +188,11 @@
       <div class="field-error" id="profile-email-err" style="display:none"></div>
     </div>
     <div class="field">
-      <label for="profile-role">Account type</label>
+      <label for="profile-role" id="h-account-type">Account type</label>
       <input id="profile-role" class="input" disabled>
     </div>
     <hr style="margin:1rem 0;border:none;border-top:1px solid #eee">
-    <p style="font-size:13px;color:#666;margin-bottom:10px">Change password (optional)</p>
+    <p style="font-size:13px;color:#666;margin-bottom:10px" id="h-change-password">Change password (optional)</p>
     <div class="field">
       <label for="profile-current-pw">Current password</label>
       <input id="profile-current-pw" class="input" type="password">
