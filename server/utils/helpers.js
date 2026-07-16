@@ -30,6 +30,7 @@ function mapRoom(r) {
     billsIncluded: r.bills_included, availableNow: r.available_now,
     landlordId: r.landlord_id, landlordName: r.landlord_name,
     savedBy: r.saved_by || [], lat: r.lat, lng: r.lng, image: r.image,
+    descriptionPt: r.description_pt || null,
     createdAt: new Date(r.created_at).getTime()
   };
 }

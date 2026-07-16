@@ -431,7 +431,7 @@ function renderCard(r) {
     <div class="price">£${r.price}<span style="font-size:12px;color:#666;font-weight:400">${t('perMonth')}</span></div>
     <div class="area">${escapeHtml(r.address)}, ${escapeHtml(r.area)}</div>
     <div class="meta">${escapeHtml(r.type)} · ${r.billsIncluded ? t('billsInclLabel') : t('billsNotIncl')} ${r.availableNow ? `· <span class="badge badge-avail">${t('availNow')}</span>` : ''}</div>
-    <div class="desc">${escapeHtml(r.description)}</div>
+    <div class="desc">${escapeHtml(currentLang === 'pt' && r.descriptionPt ? r.descriptionPt : r.description)}</div>
     <div class="row">
       <span style="font-size:12px;color:#999">${escapeHtml(r.landlordName)}</span>
       <button class="btn btn-primary btn-sm" onclick="showDetail('${r._id}')">${t('viewRoom')}</button>
@@ -507,7 +507,7 @@ async function showDetail(id) {
       <div class="price" style="font-size:24px">£${r.price}<span style="font-size:14px;color:#666;font-weight:400"> /month</span></div>
       <h2 style="margin:6px 0">${escapeHtml(r.title)}</h2>
       <p style="color:#666;margin-bottom:1rem">${escapeHtml(r.address)}, ${escapeHtml(r.area)}</p>
-      <p style="margin-bottom:1rem">${escapeHtml(r.description)}</p>
+      <p style="margin-bottom:1rem">${escapeHtml(currentLang === 'pt' && r.descriptionPt ? r.descriptionPt : r.description)}</p>
       <p class="meta" style="margin-bottom:1rem">${escapeHtml(r.type)} · ${r.billsIncluded?t('billsIncluded'):t('billsNotIncluded')} · ${r.availableNow?t('availNow'):t('comingSoon')}</p>
       ${r.lat && r.lng ? '<div id="detail-map" style="margin-bottom:1rem"></div>' : ''}
       <div class="card" style="max-width:400px">
