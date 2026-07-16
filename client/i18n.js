@@ -402,3 +402,12 @@ Object.assign(TRANSLATIONS.pt, {
   writeReview: 'Escrever uma avaliação', contact: 'Contactar',
   daysPastDue: 'dias após a data de vencimento (dia 1).', payEarly: 'Pagar antecipadamente',
 });
+
+const _savedPatch = applyTranslations;
+applyTranslations = function() {
+  _savedPatch();
+  safeSet('h-saved-rooms', t('saved'));
+  safeSet('h-my-rental', t('myRental'));
+  safeSet('h-my-bookings', t('myBookings'));
+  safeSet('h-my-enquiries', t('myEnquiries'));
+};

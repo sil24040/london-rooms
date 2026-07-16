@@ -971,7 +971,7 @@ async function loadMyRental() {
     grid += '</div>';
 
     const history = rentalPayments.length
-      ? '<div style="margin-top:1rem"><strong style="font-size:14px">Payment history</strong>' +
+      ? `<div style="margin-top:1rem"><strong style="font-size:14px">${t('paymentHistory')}</strong>` +
         rentalPayments.slice().reverse().map(p => `
           <div class="card" style="margin-top:8px;padding:10px">
             <div class="row">
