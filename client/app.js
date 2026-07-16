@@ -554,7 +554,7 @@ async function loadSaved() {
   try {
     const rooms = await api('GET','/rooms/saved');
     el.innerHTML = !rooms.length
-      ? '<div class="empty"><span class="icon">💙</span><p style="font-weight:600">${t('noSavedRooms')}</p><p style="font-size:13px;margin-top:4px">${t('browseToSave')}</p></div>'
+      ? `<div class="empty"><span class="icon">💙</span><p style="font-weight:600">No saved rooms yet</p><p style="font-size:13px;margin-top:4px">Browse rooms and tap View to find your favourites</p></div>`
       : '<div class="grid">'+rooms.map(renderCard).join('')+'</div>';
   } catch(e) { el.innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
 }
@@ -615,7 +615,7 @@ async function loadLandlordRooms() {
     const res = await api('GET','/rooms?sort=newest&limit=100');
     const mine = res.items.filter(r => r.landlordId === user._id);
     el.innerHTML = !mine.length
-      ? '<div class="empty"><span class="icon">🏠</span><p style="font-weight:600">${t('noRoomsListed')}</p><p style="font-size:13px;margin:4px 0 12px">${t('addFirstRoom')}</p><button class="btn btn-primary btn-sm" onclick="openAddRoom()">+ Add room</button></div>'
+      ? `<div class="empty"><span class="icon">🏠</span><p style="font-weight:600">No rooms listed yet</p><p style="font-size:13px;margin:4px 0 12px">Add your first room to start receiving enquiries</p><button class="btn btn-primary btn-sm" onclick="openAddRoom()">+ Add room</button></div>`
       : mine.map(r=>`
       <div class="card" style="margin-bottom:8px">
         <div class="row">
@@ -915,7 +915,7 @@ async function loadMyRental() {
   try {
     const data = await api('GET','/rental/mine');
     if (!data.room) {
-      el.innerHTML = '<div class="empty"><span class="icon">🔑</span><p style="font-weight:600">${t('noRentalSet')}</p><p style="font-size:13px;margin-top:4px">Visit a room you\'re renting and tap "Mark as my room"</p></div>';
+      el.innerHTML = `<div class="empty"><span class="icon">🔑</span><p style="font-weight:600">No rental set yet</p><p style="font-size:13px;margin-top:4px">Visit a room you\'re renting and tap "Mark as my room"</p></div>`;
       return;
     }
     myRentalRoomId = data.room._id;
@@ -971,7 +971,7 @@ async function loadMyRental() {
     grid += '</div>';
 
     const history = rentalPayments.length
-      ? '<div style="margin-top:1rem"><strong style="font-size:14px">${t('paymentHistory')}</strong>' +
+      ? '<div style="margin-top:1rem"><strong style="font-size:14px">Payment history</strong>' +
         rentalPayments.slice().reverse().map(p => `
           <div class="card" style="margin-top:8px;padding:10px">
             <div class="row">
@@ -1333,7 +1333,7 @@ async function loadRoomReviews(roomId, roomTitle) {
 
     const summary = res.count
       ? `<div class="review-summary"><span class="avg">${res.average}</span>${renderStars(Math.round(res.average))}<span style="color:#666;font-size:13px">(${res.count} t(res.count===1?'review':'reviewsCount'))</span></div>`
-      : `<p style="color:#666;font-size:13px;margin-bottom:1rem">${t('noReviews')}</p>`;
+      : `<p style="color:#666;font-size:13px;margin-bottom:1rem">No reviews yet</p>`;
 
     const list = res.items.map(rv => `
       <div class="review-item">
