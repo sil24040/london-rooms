@@ -383,3 +383,6 @@ applyTranslations = function() {
   safeSet('h-add-room', t('addRoom'));
   safeSet('tab-bookings', t('bookingRequests'));
 };
+
+Object.assign(TRANSLATIONS.en, { from: 'From', editBtn: 'Edit', deleteBtn: 'Delete', reply: 'Reply' });
+Object.assign(TRANSLATIONS.pt, { from: 'De', editBtn: 'Editar', deleteBtn: 'Eliminar', reply: 'Responder' });
