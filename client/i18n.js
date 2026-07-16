@@ -332,6 +332,18 @@ applyTranslations = function() {
   safeSet('no-rooms-text', t('noRoomsFound'));
   safeSet('try-adjusting-text', t('tryAdjusting'));
   safeSet('clear-filters-text', t('clearFilters'));
+  safeSet('h-saved', t('saved'));
+  safeSet('h-my-rental', t('myRental'));
+  safeSet('h-my-bookings', t('myBookings'));
+  safeSet('h-my-enquiries', t('myEnquiries'));
+  safeSet('h-my-listings', t('myListings'));
+  safeSet('h-my-profile', t('myProfile'));
+  safeSet('h-danger-zone', t('dangerZone'));
+  safeSet('h-delete-account', t('deleteMyAccount'));
+  safeSet('h-add-room', t('addRoom'));
+  safeSet('tab-bookings', t('bookingRequests'));
+  safeSet('tab-listings', t('myListings'));
+  safeSet('tab-enquiries', t('receivedEnquiries'));
 };
 
 Object.assign(TRANSLATIONS, {});
