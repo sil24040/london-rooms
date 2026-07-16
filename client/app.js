@@ -335,7 +335,7 @@ function renderPagination() {
   el.style.display='flex';
   el.innerHTML = `
     <button class="btn btn-outline btn-sm" ${currentPage<=1?'disabled':''} onclick="goPage(${currentPage-1})">← ${t('prev')}</button>
-    <span>Page ${currentPage} of ${totalPages}</span>
+    <span>${t('page')} ${currentPage} ${t('of')} ${totalPages}</span>
     <button class="btn btn-outline btn-sm" ${currentPage>=totalPages?'disabled':''} onclick="goPage(${currentPage+1})">${t('next')}</button>
   `;
 }
