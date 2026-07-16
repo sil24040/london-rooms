@@ -514,8 +514,8 @@ async function showDetail(id) {
         <h3>${t('contact')} ${escapeHtml(r.landlordName)}</h3>
         ${!user ? `<p style="margin:8px 0;color:#666">Sign in to send an enquiry</p><button class="btn btn-primary" style="width:100%" onclick="showPage('login')">Sign in</button>`
         : user.role==='landlord' ? `<p style="margin:8px 0;color:#666">'${t('viewingAsLandlord')}'</p>`
-        : `<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openEnquiry('${r._id}','${escapeHtml(currentLang === 'pt' && r.titlePt ? r.titlePt : r.title).replace(/'/g,"\\'")}')">Send enquiry</button>
-           <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openBooking('${r._id}','${escapeHtml(currentLang === 'pt' && r.titlePt ? r.titlePt : r.title).replace(/'/g,"\\'")}')">Request to book</button>`}
+        : `<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openEnquiry('${r._id}','${escapeHtml(currentLang === 'pt' && r.titlePt ? r.titlePt : r.title).replace(/'/g,"\\'")}')">${t('sendEnquiry')}</button>
+           <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openBooking('${r._id}','${escapeHtml(currentLang === 'pt' && r.titlePt ? r.titlePt : r.title).replace(/'/g,"\\'")}')">${t('requestToBook')}</button>`}
 
       </div>`;
  
@@ -595,7 +595,7 @@ async function loadTenantEnquiries() {
     el.innerHTML = !list.length ? '<div class="empty"><span class="icon">✉️</span><p>'+t('noEnquiries')+'</p></div>' : list.map(e=>`
       <div class="card" style="margin-bottom:8px">
         <strong>${escapeHtml(e.roomTitle)}</strong>
-        <div class="meta">${escapeHtml(e.roomArea)} · £${e.roomPrice}/mo · To: ${escapeHtml(e.landlordName)}</div>
+        <div class="meta">${escapeHtml(e.roomArea)} · £${e.roomPrice}/mo · ${t('to')}: ${escapeHtml(e.landlordName)}</div>
         <div style="font-size:13px;margin:6px 0" id="enq-msg-${e._id}">"${escapeHtml(e.message)}"</div>
         <div class="meta">${new Date(e.createdAt).toLocaleDateString('en-GB')} · <span class="badge ${e.status==='replied'?'badge-replied':'badge-avail'}">${t(e.status) || e.status}</span></div>
         ${e.reply ? `<div style="margin-top:8px;padding:8px;background:#f5f5f3;border-radius:8px;font-size:13px"><strong>${t('landlordReply')}</strong><br>${escapeHtml(e.reply)}</div>` : ''}
@@ -960,9 +960,9 @@ async function loadMyRental() {
       const isCurrent = m === currentMonthIndex;
       let statusLabel, btnClass;
       if (paid) { statusLabel = t('paid'); btnClass = 'btn-primary'; }
-      else if (isPast) { statusLabel = 'Overdue'; btnClass = 'btn-danger'; }
-      else if (isCurrent) { statusLabel = 'Due now'; btnClass = 'btn-outline'; }
-      else { statusLabel = 'Upcoming'; btnClass = 'btn-outline'; }
+      else if (isPast) { statusLabel = `${t("overdue")}`; btnClass = 'btn-danger'; }
+      else if (isCurrent) { statusLabel = `${t("dueNow")}`; btnClass = 'btn-outline'; }
+      else { statusLabel = `${t("upcoming")}`; btnClass = 'btn-outline'; }
       grid += `<button class="btn ${btnClass} btn-sm" style="flex-direction:column;height:auto;padding:10px 6px" onclick="${paid?'':`openPayRent('${monthStr}','${t('months')[m]} ${year}')`}">
         <span>${t('months')[m]}</span>
         <span style="font-size:11px">${statusLabel}</span>
@@ -1013,7 +1013,7 @@ async function loadMyRental() {
             <div style="font-size:11px;color:#185FA5;font-weight:600;margin-top:2px">TOTAL PAID</div>
           </div>
         </div>
-        <p style="font-size:13px;color:#666;margin-bottom:8px">${year} ${t('rentTracker')} · t('rentDue1st')</p>
+        <p style="font-size:13px;color:#666;margin-bottom:8px">${year} ${t('rentTracker')} · ${t('rentDue1st')}</p>
         ${grid}
         ${history}
       </div>`;
@@ -1186,7 +1186,7 @@ async function loadMyBookings() {
           <div class="row">
             <div>
               <strong>${escapeHtml(b.roomTitle)}</strong>
-              <div class="meta">${escapeHtml(b.roomArea)} · £${b.roomPrice}/mo · To: ${escapeHtml(b.landlordName)}</div>
+              <div class="meta">${escapeHtml(b.roomArea)} · £${b.roomPrice}/mo · ${t('to')}: ${escapeHtml(b.landlordName)}</div>
               ${b.message ? `<div style="font-size:13px;margin:6px 0">"${escapeHtml(b.message)}"</div>` : ''}
               <div class="meta">${new Date(b.createdAt).toLocaleDateString('en-GB')} · ${bookingStatusBadge(b.status)}</div>
             </div>
@@ -1348,7 +1348,7 @@ async function loadRoomReviews(roomId, roomTitle) {
     el.innerHTML = `
       <div class="card">
         ${summary}
-        ${reviewEligibility?.eligible ? `<button class="btn btn-outline btn-sm" style="margin-bottom:1rem" onclick="openReviewModal('${roomId}','${escapeHtml(roomTitle).replace(/'/g,"\\'")}')">Write a review</button>` : ''}
+        ${reviewEligibility?.eligible ? `<button class="btn btn-outline btn-sm" style="margin-bottom:1rem" onclick="openReviewModal('${roomId}','${escapeHtml(roomTitle).replace(/'/g,"\\'")}')">${t('writeReview')}</button>` : ''}
         ${isTenant && reviewEligibility && !reviewEligibility.eligible ? `<p style="color:#666;font-size:13px;margin-bottom:1rem">${escapeHtml(reviewEligibility.reason)}</p>` : ''}
         ${list || ''}
       </div>`;

@@ -389,3 +389,16 @@ Object.assign(TRANSLATIONS.pt, { from: 'De', editBtn: 'Editar', deleteBtn: 'Elim
 
 Object.assign(TRANSLATIONS.en, { pending: 'pending', replied: 'replied', approved: 'approved', rejected: 'rejected', cancel: 'Cancel' });
 Object.assign(TRANSLATIONS.pt, { pending: 'pendente', replied: 'respondido', approved: 'aprovado', rejected: 'rejeitado', cancel: 'Cancelar' });
+
+Object.assign(TRANSLATIONS.en, {
+  overdue: 'Overdue', dueNow: 'Due now', upcoming: 'Upcoming',
+  to: 'To', myBookings: 'My bookings', requestToBook: 'Request to book',
+  writeReview: 'Write a review', contact: 'Contact',
+  daysPastDue: 'days past the due date (1st).', payEarly: 'Pay early',
+});
+Object.assign(TRANSLATIONS.pt, {
+  overdue: 'Em atraso', dueNow: 'Vence agora', upcoming: 'Próximo',
+  to: 'Para', myBookings: 'As minhas reservas', requestToBook: 'Solicitar reserva',
+  writeReview: 'Escrever uma avaliação', contact: 'Contactar',
+  daysPastDue: 'dias após a data de vencimento (dia 1).', payEarly: 'Pagar antecipadamente',
+});
