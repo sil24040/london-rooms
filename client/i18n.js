@@ -191,12 +191,14 @@ function setLang(lang) {
   currentLang = lang;
   localStorage.setItem('lang', lang);
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
-  applyTranslations();
   const activePage = document.querySelector('.page.active');
   if (activePage) {
-    const pageId = activePage.id.replace('-page','');
-    if (typeof showPage === 'function') showPage(pageId);
+    const pageId = activePage.id.replace('page-','');
+    if (typeof showPage === 'function') {
+      showPage(pageId);
+    }
   }
+  setTimeout(applyTranslations, 200);
 }
 
 function safeSet(id, val) {

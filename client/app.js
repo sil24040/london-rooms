@@ -135,6 +135,7 @@ function showPage(name) {
   if (name === 'saved') loadSaved();
   if (name === 'dashboard') loadDashboard();
   if (name === 'profile') loadProfile();
+  setTimeout(applyTranslations, 100);
 }
  
 function updateNav() {
