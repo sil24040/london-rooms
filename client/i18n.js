@@ -240,6 +240,8 @@ function applyTranslations() {
   safeSet('login-btn', t('signIn'));
   safeSet('register-btn', t('createAccount'));
   safeSet('profile-btn', t('saveChanges'));
+  safeSet('btn-login', t('signIn'));
+  safeSet('btn-register', t('signUp'));
 }
 
 // Initialise language on page load
