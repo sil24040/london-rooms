@@ -1,6 +1,6 @@
 const pool = require('../config/db');
+const { notify } = require('../utils/helpers');
 
-// Landlord sends a room offer to a tenant
 async function createOffer(req, res) {
   if (req.user.role !== 'landlord') return res.status(403).json({ error: 'Only landlords can send offers' });
   const { enquiryId } = req.body;
@@ -10,7 +10,6 @@ async function createOffer(req, res) {
     if (!enq.rows[0]) return res.status(404).json({ error: 'Enquiry not found' });
     const e = enq.rows[0];
 
-    // Check no pending offer already exists
     const existing = await pool.query('SELECT id FROM offers WHERE enquiry_id=$1 AND status=$2', [enquiryId, 'pending']);
     if (existing.rows.length > 0) return res.status(409).json({ error: 'An offer is already pending for this enquiry' });
 
@@ -18,6 +17,15 @@ async function createOffer(req, res) {
       'INSERT INTO offers (enquiry_id, room_id, room_title, landlord_id, landlord_name, tenant_id, tenant_name) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
       [enquiryId, e.room_id, e.room_title, req.user.userId, req.user.name, e.tenant_id, e.tenant_name]
     );
+
+    // Notify tenant
+    await notify(
+      e.tenant_id,
+      'offer_received',
+      `${req.user.name} has offered you the room "${e.room_title}"`,
+      'dashboard'
+    );
+
     res.status(201).json(mapOffer(result.rows[0]));
   } catch (e) {
     console.error('POST /api/offers failed:', e);
@@ -25,7 +33,6 @@ async function createOffer(req, res) {
   }
 }
 
-// Tenant accepts or declines an offer
 async function respondOffer(req, res) {
   if (req.user.role !== 'tenant') return res.status(403).json({ error: 'Only tenants can respond to offers' });
   const { status } = req.body;
@@ -37,40 +44,47 @@ async function respondOffer(req, res) {
       [status, req.params.id, req.user.userId, 'pending']
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'Offer not found or already responded' });
+    const offer = result.rows[0];
 
-    // If accepted, set the tenant's rental room
     if (status === 'accepted') {
-      await pool.query('UPDATE users SET rental_room_id=$1 WHERE id=$2', [result.rows[0].room_id, req.user.userId]);
-      await pool.query("UPDATE rooms SET available_now=false WHERE id=$1", [result.rows[0].room_id]);
+      await pool.query('UPDATE users SET rental_room_id=$1 WHERE id=$2', [offer.room_id, req.user.userId]);
+      await pool.query('UPDATE rooms SET available_now=false WHERE id=$1', [offer.room_id]);
+      // Notify landlord - accepted
+      await notify(
+        offer.landlord_id,
+        'offer_accepted',
+        `${req.user.name} accepted your room offer for "${offer.room_title}"`,
+        'dashboard'
+      );
+    } else {
+      // Notify landlord - declined
+      await notify(
+        offer.landlord_id,
+        'offer_declined',
+        `${req.user.name} declined your room offer for "${offer.room_title}"`,
+        'dashboard'
+      );
     }
 
-    res.json(mapOffer(result.rows[0]));
+    res.json(mapOffer(offer));
   } catch (e) {
     console.error('PUT /api/offers/:id failed:', e);
     res.status(500).json({ error: 'Server error' });
   }
 }
 
-// Get pending offers for tenant
 async function myOffers(req, res) {
   try {
-    const result = await pool.query(
-      'SELECT * FROM offers WHERE tenant_id=$1 ORDER BY created_at DESC',
-      [req.user.userId]
-    );
+    const result = await pool.query('SELECT * FROM offers WHERE tenant_id=$1 ORDER BY created_at DESC', [req.user.userId]);
     res.json(result.rows.map(mapOffer));
   } catch (e) {
     res.status(500).json({ error: 'Server error' });
   }
 }
 
-// Get offers sent by landlord
 async function sentOffers(req, res) {
   try {
-    const result = await pool.query(
-      'SELECT * FROM offers WHERE landlord_id=$1 ORDER BY created_at DESC',
-      [req.user.userId]
-    );
+    const result = await pool.query('SELECT * FROM offers WHERE landlord_id=$1 ORDER BY created_at DESC', [req.user.userId]);
     res.json(result.rows.map(mapOffer));
   } catch (e) {
     res.status(500).json({ error: 'Server error' });
