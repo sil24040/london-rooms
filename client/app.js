@@ -888,10 +888,12 @@ const incomingRoomId = urlParams.get('room');
 const protectedPages = new Set(['saved', 'dashboard', 'profile']);
 if (incomingPage === 'detail' && incomingRoomId) {
   showDetail(incomingRoomId);
-} else if (incomingPage && (!protectedPages.has(incomingPage) || user)) {
-  showPage(incomingPage);
 } else if (incomingPage && protectedPages.has(incomingPage) && !user) {
+  // Store intended page and redirect to login
+  sessionStorage.setItem('redirectAfterLogin', incomingPage);
   showPage('login');
+} else if (incomingPage) {
+  showPage(incomingPage);
 }
  
 updateNav();
@@ -1333,7 +1335,7 @@ async function loadRoomReviews(roomId, roomTitle) {
     }
 
     const summary = res.count
-      ? `<div class="review-summary"><span class="avg">${res.average}</span>${renderStars(Math.round(res.average))}<span style="color:#666;font-size:13px">(${res.count} t(res.count===1?'review':'reviewsCount'))</span></div>`
+      ? `<div class="review-summary"><span class="avg">${res.average}</span>${renderStars(Math.round(res.average))}<span style="color:#666;font-size:13px">(${res.count} ${t(res.count===1?'review':'reviewsCount')})</span></div>`
       : `<p style="color:#666;font-size:13px;margin-bottom:1rem">No reviews yet</p>`;
 
     const list = res.items.map(rv => `
