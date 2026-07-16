@@ -322,3 +322,14 @@ Object.assign(TRANSLATIONS.pt, {
   review: 'avaliacao',
   reviewsCount: 'avaliacoes'
 });
+
+// Patch applyTranslations to also update hardcoded HTML strings
+const _patchApply = applyTranslations;
+applyTranslations = function() {
+  _patchApply();
+  safeSet('bills-incl-label', t('billsIncl'));
+  safeSet('avail-now-label', t('availableNow'));
+  safeSet('no-rooms-text', t('noRoomsFound'));
+  safeSet('try-adjusting-text', t('tryAdjusting'));
+  safeSet('clear-filters-text', t('clearFilters'));
+};

@@ -74,8 +74,8 @@
       <option value="">Any type</option>
       <option>Double</option><option>Single</option><option>En-suite</option><option>Studio</option>
     </select>
-    <label id="f-bills-label"><input type="checkbox" id="f-bills" onchange="onFilterChange()"> Bills incl.</label>
-    <label><input type="checkbox" id="f-avail" onchange="onFilterChange()"> Available now</label>
+    <label id="f-bills-label"><input type="checkbox" id="f-bills" onchange="onFilterChange()"> <span id="bills-incl-label">Bills incl.</span></label>
+    <label><input type="checkbox" id="f-avail" onchange="onFilterChange()"> <span id="avail-now-label">Available now</span></label>
     <select id="f-sort" onchange="onFilterChange()" aria-label="Sort by">
       <option value="newest">Newest first</option>
       <option value="oldest">Oldest first</option>
@@ -98,9 +98,9 @@
     <div id="pagination" class="pagination" style="display:none"></div>
     <div id="rooms-empty" class="empty" style="display:none">
       <span class="icon">🏠</span>
-      <p style="font-weight:600;margin-bottom:4px">No rooms found</p>
-      <p style="font-size:13px;margin-bottom:12px">Try adjusting your search or filters</p>
-      <button class="btn btn-outline btn-sm" type="button" onclick="clearFilters()">Clear filters</button>
+      <p style="font-weight:600;margin-bottom:4px"><span id="no-rooms-text">No rooms found</span></p>
+      <p style="font-size:13px;margin-bottom:12px"><span id="try-adjusting-text">Try adjusting your search or filters</span></p>
+      <button class="btn btn-outline btn-sm" type="button" onclick="clearFilters()"><span id="clear-filters-text">Clear filters</span></button>
     </div>
   </div>
   <div class="compare-bar" id="compare-bar">
@@ -302,7 +302,7 @@
       <div class="field-error" id="rm-address-err" style="display:none"></div>
     </div>
     <label style="display:flex;gap:6px;margin-bottom:10px;font-weight:400"><input type="checkbox" id="rm-bills"> Bills included</label>
-    <label style="display:flex;gap:6px;margin-bottom:10px;font-weight:400"><input type="checkbox" id="rm-avail" checked> Available now</label>
+    <label style="display:flex;gap:6px;margin-bottom:10px;font-weight:400"><input type="checkbox" id="rm-avail" checked> <span id="avail-now-label">Available now</span></label>
     <button class="btn btn-primary" style="width:100%" type="button" id="add-room-btn" onclick="doSaveRoom()">List room</button>
     <button class="btn btn-outline" style="width:100%;margin-top:8px" type="button" onclick="closeAddRoom()">Cancel</button>
   </div>
