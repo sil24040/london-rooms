@@ -273,3 +273,38 @@ function safeSet(id, val) {
   const el = document.getElementById(id);
   if (el) el.textContent = val;
 }
+
+// Extend both languages with offers/notifications translations
+Object.assign(TRANSLATIONS.en, {
+  offerRoom: '🏠 Offer room',
+  roomOffers: '🏠 Room offers',
+  offerReceived: 'The landlord has offered you this room. Would you like to accept?',
+  acceptOffer: '✓ Accept',
+  declineOffer: '✗ Decline',
+  sendOffer: 'Send a room offer to this tenant?',
+  offerSent: '✓ Offer sent! The tenant will see it on their dashboard.',
+  noOffers: 'No pending offers',
+  notifications: 'Notifications',
+  markAllRead: 'Mark all read',
+  noNotifications: 'No notifications yet',
+  offerAccepted: 'accepted',
+  offerDeclined: 'declined',
+  offerPending: 'pending',
+});
+
+Object.assign(TRANSLATIONS.pt, {
+  offerRoom: '🏠 Oferecer quarto',
+  roomOffers: '🏠 Ofertas de quarto',
+  offerReceived: 'O proprietário ofereceu-lhe este quarto. Deseja aceitar?',
+  acceptOffer: '✓ Aceitar',
+  declineOffer: '✗ Recusar',
+  sendOffer: 'Enviar uma oferta de quarto a este inquilino?',
+  offerSent: '✓ Oferta enviada! O inquilino verá no seu painel.',
+  noOffers: 'Nenhuma oferta pendente',
+  notifications: 'Notificações',
+  markAllRead: 'Marcar tudo como lido',
+  noNotifications: 'Sem notificações ainda',
+  offerAccepted: 'aceite',
+  offerDeclined: 'recusado',
+  offerPending: 'pendente',
+});
