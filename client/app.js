@@ -334,9 +334,9 @@ function renderPagination() {
   if (totalPages <= 1 || currentView !== 'list') { el.style.display='none'; return; }
   el.style.display='flex';
   el.innerHTML = `
-    <button class="btn btn-outline btn-sm" ${currentPage<=1?'disabled':''} onclick="goPage(${currentPage-1})">← Prev</button>
+    <button class="btn btn-outline btn-sm" ${currentPage<=1?'disabled':''} onclick="goPage(${currentPage-1})">← ${t('prev')}</button>
     <span>Page ${currentPage} of ${totalPages}</span>
-    <button class="btn btn-outline btn-sm" ${currentPage>=totalPages?'disabled':''} onclick="goPage(${currentPage+1})">Next →</button>
+    <button class="btn btn-outline btn-sm" ${currentPage>=totalPages?'disabled':''} onclick="goPage(${currentPage+1})">${t('next')}</button>
   `;
 }
 function goPage(p) {
@@ -389,7 +389,7 @@ async function renderBrowseMap() {
   const pts = currentRooms.filter(r => r.lat && r.lng);
   pts.forEach(r => {
     const marker = L.marker([r.lat, r.lng]).addTo(browseMap);
-    marker.bindPopup(`<b>£${r.price}/mo</b><br>${escapeHtml(r.title)}<br>${escapeHtml(r.area)}<br><button class="popup-view-btn" onclick="showDetail('${r._id}')">View room</button>`);
+    marker.bindPopup(`<b>£${r.price}/mo</b><br>${escapeHtml(r.title)}<br>${escapeHtml(r.area)}<br><button class="popup-view-btn" onclick="showDetail('${r._id}')">${t('viewRoomBtn')}</button>`);
     browseMarkers.push(marker);
   });
  
@@ -425,16 +425,16 @@ function renderCard(r) {
     : `<div class="card-img-ph">🏠</div>`;
   const checked = compareIds.has(r._id) ? 'checked' : '';
   return `<div class="card">
-    <label class="compare-check"><input type="checkbox" ${checked} onchange="toggleCompare('${r._id}', this.checked)"> Compare</label>
+    <label class="compare-check"><input type="checkbox" ${checked} onchange="toggleCompare('${r._id}', this.checked)">${t("compare")}</label>
     ${img}
     <h3>${escapeHtml(r.title)}</h3>
-    <div class="price">£${r.price}<span style="font-size:12px;color:#666;font-weight:400"> /mo</span></div>
+    <div class="price">£${r.price}<span style="font-size:12px;color:#666;font-weight:400">${t('perMonth')}</span></div>
     <div class="area">${escapeHtml(r.address)}, ${escapeHtml(r.area)}</div>
-    <div class="meta">${escapeHtml(r.type)} · ${r.billsIncluded ? t('billsInclLabel') : t('billsNotIncl')} ${r.availableNow ? '· <span class="badge badge-avail">Available now</span>' : ''}</div>
+    <div class="meta">${escapeHtml(r.type)} · ${r.billsIncluded ? t('billsInclLabel') : t('billsNotIncl')} ${r.availableNow ? '· <span class="badge badge-avail">${t("availNow")}</span>' : ''}</div>
     <div class="desc">${escapeHtml(r.description)}</div>
     <div class="row">
       <span style="font-size:12px;color:#999">${escapeHtml(r.landlordName)}</span>
-      <button class="btn btn-primary btn-sm" onclick="showDetail('${r._id}')">View</button>
+      <button class="btn btn-primary btn-sm" onclick="showDetail('${r._id}')">${t('viewRoom')}</button>
     </div>
   </div>`;
 }
@@ -473,9 +473,9 @@ async function showCompare() {
       ['Area', r => escapeHtml(r.area)],
       ['Address', r => escapeHtml(r.address)],
       ['Bills included', r => r.billsIncluded ? 'Yes' : 'No'],
-      ['Available now', r => r.availableNow ? 'Yes' : 'No'],
+      ['Available now', r => r.availableNow ? t('yes') : t('no')],
       ['Landlord', r => escapeHtml(r.landlordName)],
-      ['', r => `<button class="btn btn-primary btn-sm" onclick="showDetail('${r._id}')">View room</button>`],
+      ['', r => `<button class="btn btn-primary btn-sm" onclick="showDetail('${r._id}')">${t('viewRoomBtn')}</button>`],
     ];
     let html = '<table class="compare-table"><tbody>';
     rows.forEach(([label, fn]) => {
@@ -621,7 +621,7 @@ async function loadLandlordRooms() {
         <div class="row">
           <div style="display:flex;gap:10px;align-items:center">
             ${r.image ? `<img src="${r.image}" style="width:60px;height:50px;object-fit:cover;border-radius:6px">` : ''}
-            <div><strong>${escapeHtml(r.title)}</strong><div class="meta">${escapeHtml(r.area)} · £${r.price}/mo · ${r.availableNow ? 'Available now' : 'Coming soon'}</div></div>
+            <div><strong>${escapeHtml(r.title)}</strong><div class="meta">${escapeHtml(r.area)} · £${r.price}/mo · ${r.availableNow ? t('availNow') : t('comingSoon')}</div></div>
           </div>
           <div style="display:flex;gap:6px">
             <button class="btn btn-outline btn-sm" onclick="openEditRoom('${r._id}')">Edit</button>
@@ -996,7 +996,7 @@ async function loadMyRental() {
             <strong style="font-size:16px">${escapeHtml(data.room.title)}</strong>
             <div class="meta" style="margin-top:4px">📍 ${escapeHtml(data.room.area)} · <strong>£${data.room.price}/mo</strong></div>
           </div>
-          <button class="btn btn-outline btn-sm" onclick="showDetail('${data.room._id}')">View room</button>
+          <button class="btn btn-outline btn-sm" onclick="showDetail('${data.room._id}')">${t('viewRoomBtn')}</button>
         </div>
         ${banner}
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:1rem">
