@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",                  /* Converts your 'imports' to standard 'require' behind the scenes */
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "strict": true,
+    "ignoreDeprecations": "6.0",
+    "esModuleInterop": true,                /* Crucial: Allows importing CommonJS modules using ES6 import syntax */
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

@@ -1,19 +1,24 @@
-require('dotenv').config();
-const express = require('express');
-const path = require('path');
+import dotenv from 'dotenv';
+// Load environment variables immediately before any other code executes
+dotenv.config();
 
-const pool = require('./config/db');
-const { uploadErrorHandler } = require('./middleware/upload');
+import express, { Request, Response } from 'express';
+import path from 'path';
 
-const authRoutes = require('./routes/auth.routes');
-const roomsRoutes = require('./routes/rooms.routes');
-const enquiriesRoutes = require('./routes/enquiries.routes');
-const rentalRoutes = require('./routes/rental.routes');
-const offersRoutes = require("./routes/offers.routes");
-const messagesRoutes = require('./routes/messages.routes');
-const bookingRoutes = require('./routes/booking.routes');
-const notificationRoutes = require('./routes/notification.routes');
-const reviewsRoutes = require('./routes/reviews.routes');
+// Import our DB Pool
+import pool from './config/db';
+import { uploadErrorHandler } from './middleware/upload';
+
+// Import our API routes
+import authRoutes from './routes/auth.routes';
+import roomsRoutes from './routes/rooms.routes';
+import enquiriesRoutes from './routes/enquiries.routes';
+import rentalRoutes from './routes/rental.routes';
+import offersRoutes from './routes/offers.routes';
+import messagesRoutes from './routes/messages.routes';
+import bookingRoutes from './routes/booking.routes';
+import notificationRoutes from './routes/notification.routes';
+import reviewsRoutes from './routes/reviews.routes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,7 +26,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 // ── LANDING PAGE AS HOMEPAGE ──
-app.get('/', (req, res) => {
+app.get('/', (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '../client/landing.html'));
 });
 
@@ -29,7 +34,7 @@ app.get('/', (req, res) => {
 app.use(express.static(path.join(__dirname, '../client'), {
   etag: true,
   maxAge: '7d',
-  setHeaders(res, filePath) {
+  setHeaders(res: Response, filePath: string) {
     if (filePath.endsWith('.html') || filePath.endsWith('sw.js')) {
       res.setHeader('Cache-Control', 'no-cache');
     }
@@ -61,7 +66,7 @@ app.listen(PORT, async () => {
   try {
     await pool.query('SELECT 1');
     console.log('🗄️  Database connected: Supabase PostgreSQL');
-  } catch (e) {
+  } catch (e: any) {
     console.error('❌ Database connection FAILED:', e.message);
     console.error('    Full error:', e);
   }

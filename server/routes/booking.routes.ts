@@ -1,7 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const { authRequired } = require('../middleware/auth');
-const ctrl = require('../controllers/booking.controller');
+import express, { Router } from 'express';
+import { authRequired } from '../middleware/auth';
+import * as ctrl from '../controllers/booking.controller';
+
+const router: Router = express.Router();
 
 router.post('/:roomId', authRequired, ctrl.createBooking);
 router.get('/mine', authRequired, ctrl.myBookings);
@@ -10,4 +11,4 @@ router.put('/:id/approve', authRequired, ctrl.approveBooking);
 router.put('/:id/reject', authRequired, ctrl.rejectBooking);
 router.delete('/:id', authRequired, ctrl.cancelBooking);
 
-module.exports = router;
+export default router;
