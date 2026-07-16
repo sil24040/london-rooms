@@ -389,7 +389,7 @@ async function renderBrowseMap() {
   const pts = currentRooms.filter(r => r.lat && r.lng);
   pts.forEach(r => {
     const marker = L.marker([r.lat, r.lng]).addTo(browseMap);
-    marker.bindPopup(`<b>£${r.price}/mo</b><br>${escapeHtml(r.title)}<br>${escapeHtml(r.area)}<br><button class="popup-view-btn" onclick="showDetail('${r._id}')">${t('viewRoomBtn')}</button>`);
+    marker.bindPopup(`<b>£${r.price}/mo</b><br>${escapeHtml(currentLang === 'pt' && r.titlePt ? r.titlePt : r.title)}<br>${escapeHtml(r.area)}<br><button class="popup-view-btn" onclick="showDetail('${r._id}')">${t('viewRoomBtn')}</button>`);
     browseMarkers.push(marker);
   });
  
@@ -421,13 +421,13 @@ function escapeHtml(str) {
  
 function renderCard(r) {
   const img = r.image
-    ? `<img class="card-img" src="${r.image}" alt="${escapeHtml(r.title)}">`
+    ? `<img class="card-img" src="${r.image}" alt="${escapeHtml(currentLang === 'pt' && r.titlePt ? r.titlePt : r.title)}">`
     : `<div class="card-img-ph">🏠</div>`;
   const checked = compareIds.has(r._id) ? 'checked' : '';
   return `<div class="card">
     <label class="compare-check"><input type="checkbox" ${checked} onchange="toggleCompare('${r._id}', this.checked)">${t("compare")}</label>
     ${img}
-    <h3>${escapeHtml(r.title)}</h3>
+    <h3>${escapeHtml(currentLang === 'pt' && r.titlePt ? r.titlePt : r.title)}</h3>
     <div class="price">£${r.price}<span style="font-size:12px;color:#666;font-weight:400">${t('perMonth')}</span></div>
     <div class="area">${escapeHtml(r.address)}, ${escapeHtml(r.area)}</div>
     <div class="meta">${escapeHtml(r.type)} · ${r.billsIncluded ? t('billsInclLabel') : t('billsNotIncl')} ${r.availableNow ? `· <span class="badge badge-avail">${t('availNow')}</span>` : ''}</div>
@@ -467,7 +467,7 @@ async function showCompare() {
     const rooms = await api('POST','/rooms/compare',{ids:[...compareIds]});
     const rows = [
       ['Photo', r => r.image ? `<img src="${r.image}" style="width:100px;height:70px;object-fit:cover;border-radius:6px">` : '—'],
-      ['Title', r => escapeHtml(r.title)],
+      ['Title', r => escapeHtml(currentLang === 'pt' && r.titlePt ? r.titlePt : r.title)],
       ['Price', r => '£'+r.price+'/mo'],
       ['Type', r => escapeHtml(r.type)],
       ['Area', r => escapeHtml(r.area)],
@@ -501,11 +501,11 @@ async function showDetail(id) {
   }
   try {
     const r = await api('GET','/rooms/'+id);
-    const img = r.image ? `<img src="${r.image}" alt="${escapeHtml(r.title)}" style="width:100%;max-height:320px;object-fit:cover;border-radius:12px;margin-bottom:1rem">` : '';
+    const img = r.image ? `<img src="${r.image}" alt="${escapeHtml(currentLang === 'pt' && r.titlePt ? r.titlePt : r.title)}" style="width:100%;max-height:320px;object-fit:cover;border-radius:12px;margin-bottom:1rem">` : '';
     document.getElementById('detail-content').innerHTML = `
       ${img}
       <div class="price" style="font-size:24px">£${r.price}<span style="font-size:14px;color:#666;font-weight:400">${t("perMonthFull")}</span></div>
-      <h2 style="margin:6px 0">${escapeHtml(r.title)}</h2>
+      <h2 style="margin:6px 0">${escapeHtml(currentLang === 'pt' && r.titlePt ? r.titlePt : r.title)}</h2>
       <p style="color:#666;margin-bottom:1rem">${escapeHtml(r.address)}, ${escapeHtml(r.area)}</p>
       <p style="margin-bottom:1rem">${escapeHtml(currentLang === 'pt' && r.descriptionPt ? r.descriptionPt : r.description)}</p>
       <p class="meta" style="margin-bottom:1rem">${escapeHtml(r.type)} · ${r.billsIncluded?t('billsIncluded'):t('billsNotIncluded')} · ${r.availableNow?t('availNow'):t('comingSoon')}</p>
@@ -514,8 +514,8 @@ async function showDetail(id) {
         <h3>${t('contact')} ${escapeHtml(r.landlordName)}</h3>
         ${!user ? `<p style="margin:8px 0;color:#666">Sign in to send an enquiry</p><button class="btn btn-primary" style="width:100%" onclick="showPage('login')">Sign in</button>`
         : user.role==='landlord' ? `<p style="margin:8px 0;color:#666">'${t('viewingAsLandlord')}'</p>`
-        : `<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openEnquiry('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Send enquiry</button>
-           <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openBooking('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Request to book</button>`}
+        : `<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openEnquiry('${r._id}','${escapeHtml(currentLang === 'pt' && r.titlePt ? r.titlePt : r.title).replace(/'/g,"\\'")}')">Send enquiry</button>
+           <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openBooking('${r._id}','${escapeHtml(currentLang === 'pt' && r.titlePt ? r.titlePt : r.title).replace(/'/g,"\\'")}')">Request to book</button>`}
 
       </div>`;
  
@@ -525,7 +525,7 @@ async function showDetail(id) {
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; OpenStreetMap contributors', maxZoom: 18
         }).addTo(detailMap);
-        L.marker([r.lat, r.lng]).addTo(detailMap).bindPopup(`<b>${escapeHtml(r.title)}</b><br>${escapeHtml(r.area)}`).openPopup();
+        L.marker([r.lat, r.lng]).addTo(detailMap).bindPopup(`<b>${escapeHtml(currentLang === 'pt' && r.titlePt ? r.titlePt : r.title)}</b><br>${escapeHtml(r.area)}`).openPopup();
         detailMap.invalidateSize();
       }, 50)).catch(() => {
         const map = document.getElementById('detail-map');
@@ -601,8 +601,8 @@ async function loadTenantEnquiries() {
         ${e.reply ? `<div style="margin-top:8px;padding:8px;background:#f5f5f3;border-radius:8px;font-size:13px"><strong>${t('landlordReply')}</strong><br>${escapeHtml(e.reply)}</div>` : ''}
         ${e.status !== 'replied' ? `
         <div style="display:flex;gap:6px;margin-top:8px">
-          <button class="btn btn-outline btn-sm" onclick="openEditEnquiry('${e._id}','${escapeHtml(e.message).replace(/'/g,"\\'")}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteEnquiry('${e._id}')">Delete</button>
+          <button class="btn btn-outline btn-sm" onclick="openEditEnquiry('${e._id}','${escapeHtml(e.message).replace(/'/g,"\\'")}')">${t('editBtn')}</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteEnquiry('${e._id}')">${t('deleteBtn')}</button>
         </div>` : ''}
       </div>`).join('');
   } catch(e) { el.innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
@@ -621,11 +621,11 @@ async function loadLandlordRooms() {
         <div class="row">
           <div style="display:flex;gap:10px;align-items:center">
             ${r.image ? `<img src="${r.image}" style="width:60px;height:50px;object-fit:cover;border-radius:6px">` : ''}
-            <div><strong>${escapeHtml(r.title)}</strong><div class="meta">${escapeHtml(r.area)} · £${r.price}/mo · ${r.availableNow ? t('availNow') : t('comingSoon')}</div></div>
+            <div><strong>${escapeHtml(currentLang === 'pt' && r.titlePt ? r.titlePt : r.title)}</strong><div class="meta">${escapeHtml(r.area)} · £${r.price}/mo · ${r.availableNow ? t('availNow') : t('comingSoon')}</div></div>
           </div>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-outline btn-sm" onclick="openEditRoom('${r._id}')">Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteRoom('${r._id}')">Delete</button>
+            <button class="btn btn-outline btn-sm" onclick="openEditRoom('${r._id}')">${t('editBtn')}</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteRoom('${r._id}')">${t('deleteBtn')}</button>
           </div>
         </div>
       </div>`).join('');
@@ -640,10 +640,10 @@ async function loadLandlordEnquiries() {
     el.innerHTML = !list.length ? '<div class="empty"><span class="icon">📭</span><p>'+t('noEnquiriesReceived')+'</p></div>' : list.map(e=>`
       <div class="card" style="margin-bottom:8px">
         <strong>${escapeHtml(e.roomTitle)}</strong>
-        <div class="meta">From: ${escapeHtml(e.tenantName)}</div>
+        <div class="meta">${t('from')}: ${escapeHtml(e.tenantName)}</div>
         <div style="font-size:13px;margin:6px 0">"${escapeHtml(e.message)}"</div>
         <div class="meta">${new Date(e.createdAt).toLocaleDateString('en-GB')} · <span class="badge ${e.status==='replied'?'badge-replied':'badge-avail'}">${e.status}</span></div>
-        ${e.reply ? `<div style="margin-top:8px;padding:8px;background:#f5f5f3;border-radius:8px;font-size:13px"><strong>${t('yourReplyLabel')}</strong><br>${escapeHtml(e.reply)}</div>` : `<button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="openReply('${e._id}','${escapeHtml(e.roomTitle).replace(/'/g,"\\'")}','${escapeHtml(e.tenantName).replace(/'/g,"\\'")}')">Reply</button><button class="btn btn-primary btn-sm" style="margin-top:8px;margin-left:6px" onclick="sendOffer('${e._id}')">🏠 Offer room</button>`}
+        ${e.reply ? `<div style="margin-top:8px;padding:8px;background:#f5f5f3;border-radius:8px;font-size:13px"><strong>${t('yourReplyLabel')}</strong><br>${escapeHtml(e.reply)}</div>` : `<button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="openReply('${e._id}','${escapeHtml(e.roomTitle).replace(/'/g,"\\'")}','${escapeHtml(e.tenantName).replace(/'/g,"\\'")}')">${t('reply')}</button><button class="btn btn-primary btn-sm" style="margin-top:8px;margin-left:6px" onclick="sendOffer('${e._id}')">${t('offerRoom')}</button>`}
       </div>`).join('');
   } catch(e) { el.innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
 }
@@ -980,7 +980,7 @@ async function loadMyRental() {
                 <div class="meta">${t('paidLabel')} £${p.amount} · ${t('cardEnding')} ${p.cardLast4}</div>
                 <div class="meta">${new Date(p.paidAt).toLocaleDateString('en-GB')}</div>
               </div>
-              <button class="btn btn-danger btn-sm" onclick="deletePayment('${p._id}')">Delete</button>
+              <button class="btn btn-danger btn-sm" onclick="deletePayment('${p._id}')">${t('deleteBtn')}</button>
             </div>
           </div>`).join('') + '</div>'
       : '';
@@ -1207,7 +1207,7 @@ async function loadLandlordBookings() {
       : list.map(b => `
         <div class="card" style="margin-bottom:8px">
           <strong>${escapeHtml(b.roomTitle)}</strong>
-          <div class="meta">From: ${escapeHtml(b.tenantName)}</div>
+          <div class="meta">${t('from')}: ${escapeHtml(b.tenantName)}</div>
           ${b.message ? `<div style="font-size:13px;margin:6px 0">"${escapeHtml(b.message)}"</div>` : ''}
           <div class="meta">${new Date(b.createdAt).toLocaleDateString('en-GB')} · ${bookingStatusBadge(b.status)}</div>
           ${b.status === 'pending' ? `
@@ -1464,7 +1464,7 @@ async function loadMyOffers() {
       ${pending.map(o => `
         <div class="card" style="margin-bottom:8px;border-left:4px solid #185FA5">
           <strong>${escapeHtml(o.roomTitle)}</strong>
-          <div class="meta">From: ${escapeHtml(o.landlordName)}</div>
+          <div class="meta">${t('from')}: ${escapeHtml(o.landlordName)}</div>
           <p style="font-size:13px;color:#666;margin:6px 0">The landlord has offered you this room. Would you like to accept?</p>
           <div style="display:flex;gap:8px;margin-top:8px">
             <button class="btn btn-primary btn-sm" onclick="respondToOffer('${o._id}','accepted')">✓ Accept</button>
