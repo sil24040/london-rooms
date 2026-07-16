@@ -504,16 +504,16 @@ async function showDetail(id) {
     const img = r.image ? `<img src="${r.image}" alt="${escapeHtml(r.title)}" style="width:100%;max-height:320px;object-fit:cover;border-radius:12px;margin-bottom:1rem">` : '';
     document.getElementById('detail-content').innerHTML = `
       ${img}
-      <div class="price" style="font-size:24px">£${r.price}<span style="font-size:14px;color:#666;font-weight:400"> /month</span></div>
+      <div class="price" style="font-size:24px">£${r.price}<span style="font-size:14px;color:#666;font-weight:400">${t("perMonthFull")}</span></div>
       <h2 style="margin:6px 0">${escapeHtml(r.title)}</h2>
       <p style="color:#666;margin-bottom:1rem">${escapeHtml(r.address)}, ${escapeHtml(r.area)}</p>
       <p style="margin-bottom:1rem">${escapeHtml(currentLang === 'pt' && r.descriptionPt ? r.descriptionPt : r.description)}</p>
       <p class="meta" style="margin-bottom:1rem">${escapeHtml(r.type)} · ${r.billsIncluded?t('billsIncluded'):t('billsNotIncluded')} · ${r.availableNow?t('availNow'):t('comingSoon')}</p>
       ${r.lat && r.lng ? '<div id="detail-map" style="margin-bottom:1rem"></div>' : ''}
       <div class="card" style="max-width:400px">
-        <h3>Contact ${escapeHtml(r.landlordName)}</h3>
+        <h3>${t('contact')} ${escapeHtml(r.landlordName)}</h3>
         ${!user ? `<p style="margin:8px 0;color:#666">Sign in to send an enquiry</p><button class="btn btn-primary" style="width:100%" onclick="showPage('login')">Sign in</button>`
-        : user.role==='landlord' ? `<p style="margin:8px 0;color:#666">You're viewing this as a landlord.</p>`
+        : user.role==='landlord' ? `<p style="margin:8px 0;color:#666">'${t('viewingAsLandlord')}'</p>`
         : `<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openEnquiry('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Send enquiry</button>
            <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="openBooking('${r._id}','${escapeHtml(r.title).replace(/'/g,"\\'")}')">Request to book</button>`}
 
@@ -1013,7 +1013,7 @@ async function loadMyRental() {
             <div style="font-size:11px;color:#185FA5;font-weight:600;margin-top:2px">TOTAL PAID</div>
           </div>
         </div>
-        <p style="font-size:13px;color:#666;margin-bottom:8px">${year} ${t('rentTracker')} · rent due the 1st of each month</p>
+        <p style="font-size:13px;color:#666;margin-bottom:8px">${year} ${t('rentTracker')} · t('rentDue1st')</p>
         ${grid}
         ${history}
       </div>`;
@@ -1332,8 +1332,8 @@ async function loadRoomReviews(roomId, roomTitle) {
     }
 
     const summary = res.count
-      ? `<div class="review-summary"><span class="avg">${res.average}</span>${renderStars(Math.round(res.average))}<span style="color:#666;font-size:13px">(${res.count} review${res.count===1?'':'s'})</span></div>`
-      : `<p style="color:#666;font-size:13px;margin-bottom:1rem">No reviews yet</p>`;
+      ? `<div class="review-summary"><span class="avg">${res.average}</span>${renderStars(Math.round(res.average))}<span style="color:#666;font-size:13px">(${res.count} t(res.count===1?'review':'reviewsCount'))</span></div>`
+      : `<p style="color:#666;font-size:13px;margin-bottom:1rem">${t('noReviews')}</p>`;
 
     const list = res.items.map(rv => `
       <div class="review-item">

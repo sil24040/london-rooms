@@ -308,3 +308,11 @@ Object.assign(TRANSLATIONS.pt, {
   offerDeclined: 'recusado',
   offerPending: 'pendente',
 });
+Object.assign(TRANSLATIONS.en, { rentDue1st: 'rent due the 1st of each month' });
+Object.assign(TRANSLATIONS.pt, { rentDue1st: 'renda devida no dia 1 de cada mês' });
+Object.assign(TRANSLATIONS.en, { noReviews: 'No reviews yet', reviews: 'Reviews', review: 'review', reviewsCount: 'reviews' });
+Object.assign(TRANSLATIONS.pt, { noReviews: 'Sem avaliações ainda', reviews: 'Avaliações', review: 'avaliação', reviewsCount: 'avaliações' });
+EO
+cat >> ../client/i18n.js << 'EOF'
+Object.assign(TRANSLATIONS.en, { noReviews: 'No reviews yet', reviews: 'Reviews', review: 'review', reviewsCount: 'reviews' });
+Object.assign(TRANSLATIONS.pt, { noReviews: 'Sem avaliações ainda', reviews: 'Avaliações', review: 'avaliação', reviewsCount: 'avaliações' });
