@@ -430,7 +430,7 @@ function renderCard(r) {
     <h3>${escapeHtml(r.title)}</h3>
     <div class="price">£${r.price}<span style="font-size:12px;color:#666;font-weight:400">${t('perMonth')}</span></div>
     <div class="area">${escapeHtml(r.address)}, ${escapeHtml(r.area)}</div>
-    <div class="meta">${escapeHtml(r.type)} · ${r.billsIncluded ? t('billsInclLabel') : t('billsNotIncl')} ${r.availableNow ? '· <span class="badge badge-avail">${t("availNow")}</span>' : ''}</div>
+    <div class="meta">${escapeHtml(r.type)} · ${r.billsIncluded ? t('billsInclLabel') : t('billsNotIncl')} ${r.availableNow ? `· <span class="badge badge-avail">${t('availNow')}</span>` : ''}</div>
     <div class="desc">${escapeHtml(r.description)}</div>
     <div class="row">
       <span style="font-size:12px;color:#999">${escapeHtml(r.landlordName)}</span>
