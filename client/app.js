@@ -941,15 +941,15 @@ async function loadMyRental() {
     } else if (daysSinceDue > 0) {
       banner = `<div style="background:#fdecea;border-radius:10px;padding:12px 16px;margin-bottom:1rem;display:flex;align-items:center;gap:10px">
         <span style="font-size:20px">⚠️</span>
-        <div><strong style="color:#c0392b">${t('months')[currentMonthIndex]} rent is overdue</strong><div style="font-size:12px;color:#c0392b">${daysSinceDue} day${daysSinceDue===1?'':'s'} past the due date (1st).</div></div>
-        <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="openPayRent('${thisMonthStr}','${t('months')[currentMonthIndex]} ${year}')">Pay now</button>
+        <div><strong style="color:#c0392b">${t('months')[currentMonthIndex]} ${t('rentOverdue')}</strong><div style="font-size:12px;color:#c0392b">${daysSinceDue} ${t('daysPastDue')}</div></div>
+        <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="openPayRent('${thisMonthStr}','${t('months')[currentMonthIndex]} ${year}')">${t('payNow')}</button>
       </div>`;
     } else {
       const daysUntil = -daysSinceDue;
       banner = `<div style="background:#EEF5FF;border-radius:10px;padding:12px 16px;margin-bottom:1rem;display:flex;align-items:center;gap:10px">
         <span style="font-size:20px">📅</span>
         <div><strong style="color:#185FA5">${t('months')[currentMonthIndex]} rent due in ${daysUntil} day${daysUntil===1?'':'s'}</strong><div style="font-size:12px;color:#185FA5">Due on the 1st.</div></div>
-        <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openPayRent('${thisMonthStr}','${t('months')[currentMonthIndex]} ${year}')">Pay early</button>
+        <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openPayRent('${thisMonthStr}','${t('months')[currentMonthIndex]} ${year}')">${t('payEarly')}</button>
       </div>`;
     }
 
@@ -1003,15 +1003,15 @@ async function loadMyRental() {
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:1rem">
           <div style="background:#eaf3de;border-radius:10px;padding:12px;text-align:center">
             <div style="font-size:22px;font-weight:800;color:#3B6D11">${paidCount}</div>
-            <div style="font-size:11px;color:#3B6D11;font-weight:600;margin-top:2px">PAID</div>
+            <div style="font-size:11px;color:#3B6D11;font-weight:600;margin-top:2px">${t('paid').toUpperCase()}</div>
           </div>
           <div style="background:#fdecea;border-radius:10px;padding:12px;text-align:center">
             <div style="font-size:22px;font-weight:800;color:#c0392b">${unpaidCount}</div>
-            <div style="font-size:11px;color:#c0392b;font-weight:600;margin-top:2px">UNPAID</div>
+            <div style="font-size:11px;color:#c0392b;font-weight:600;margin-top:2px">${t('overdue').toUpperCase()}</div>
           </div>
           <div style="background:#EEF5FF;border-radius:10px;padding:12px;text-align:center">
             <div style="font-size:22px;font-weight:800;color:#185FA5">£${totalPaid}</div>
-            <div style="font-size:11px;color:#185FA5;font-weight:600;margin-top:2px">TOTAL PAID</div>
+            <div style="font-size:11px;color:#185FA5;font-weight:600;margin-top:2px">${t('paidLabel').toUpperCase()} ${t('paid').toUpperCase()}</div>
           </div>
         </div>
         <p style="font-size:13px;color:#666;margin-bottom:8px">${year} ${t('rentTracker')} · ${t('rentDue1st')}</p>
@@ -1125,7 +1125,7 @@ async function doPayRent() {
   } catch(e) {
     document.getElementById('pay-error').textContent = e.message;
     document.getElementById('pay-error').style.display='';
-  } finally { btn.disabled=false; btn.textContent='Pay now'; }
+  } finally { btn.disabled=false; btn.textContent=t('payNow'); }
 }
  
 async function deletePayment(id) {
