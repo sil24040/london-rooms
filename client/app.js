@@ -555,7 +555,7 @@ async function loadSaved() {
   try {
     const rooms = await api('GET','/rooms/saved');
     el.innerHTML = !rooms.length
-      ? `<div class="empty"><span class="icon">💙</span><p style="font-weight:600">No saved rooms yet</p><p style="font-size:13px;margin-top:4px">Browse rooms and tap View to find your favourites</p></div>`
+      ? `<div class="empty"><span class="icon">💙</span><p style="font-weight:600">${t('noSavedRooms')}</p><p style="font-size:13px;margin-top:4px">${t('browseToSave')}</p></div>`
       : '<div class="grid">'+rooms.map(renderCard).join('')+'</div>';
   } catch(e) { el.innerHTML = '<div class="alert alert-error">'+e.message+'</div>'; }
 }
