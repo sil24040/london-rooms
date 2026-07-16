@@ -329,103 +329,29 @@ Object.assign(TRANSLATIONS.pt, {
   reviewsCount: 'avaliacoes'
 });
 
-// Patch applyTranslations to also update hardcoded HTML strings
-const _patchApply = applyTranslations;
+// Single consolidated patch for all static HTML translations
+const _origApply = applyTranslations;
 applyTranslations = function() {
-  _patchApply();
+  _origApply();
+
+  // Process all data-i18n attributes
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (val) el.textContent = val;
+  });
+
+  // Static element IDs
   safeSet('bills-incl-label', t('billsIncl'));
   safeSet('avail-now-label', t('availableNow'));
   safeSet('no-rooms-text', t('noRoomsFound'));
   safeSet('try-adjusting-text', t('tryAdjusting'));
   safeSet('clear-filters-text', t('clearFilters'));
-  safeSet('h-saved', t('saved'));
-  safeSet('h-my-rental', t('myRental'));
-  safeSet('h-my-bookings', t('myBookings'));
-  safeSet('h-my-enquiries', t('myEnquiries'));
-  safeSet('h-my-listings', t('myListings'));
-  safeSet('h-my-profile', t('myProfile'));
-  safeSet('h-danger-zone', t('dangerZone'));
-  safeSet('h-delete-account', t('deleteMyAccount'));
-  safeSet('h-add-room', t('addRoom'));
-  safeSet('tab-bookings', t('bookingRequests'));
   safeSet('tab-listings', t('myListings'));
   safeSet('tab-enquiries', t('receivedEnquiries'));
-};
-
-Object.assign(TRANSLATIONS, {});
-const _htmlPatch = applyTranslations;
-applyTranslations = function() {
-  _htmlPatch();
-  safeSet('h-my-rental', t('myRental'));
-  safeSet('h-my-enquiries', t('myEnquiries'));
-  safeSet('h-my-listings', t('myListings'));
-  safeSet('h-my-profile', t('myProfile'));
-  safeSet('h-account-type', t('accountType'));
-  safeSet('h-change-password', t('changePassword'));
-  safeSet('tab-listings', t('myListings'));
-  safeSet('tab-enquiries', t('receivedEnquiries'));
-};
-
-Object.assign(TRANSLATIONS.en, {
-  bookingRequests: 'Booking requests',
-  dangerZone: 'Danger zone',
-  deleteMyAccount: 'Delete my account',
-  fullName: 'Full name',
-  emailLabel: 'Email',
-  currentPasswordLabel: 'Current password',
-  newPasswordLabel: 'New password',
-});
-Object.assign(TRANSLATIONS.pt, {
-  bookingRequests: 'Pedidos de reserva',
-  dangerZone: 'Zona de perigo',
-  deleteMyAccount: 'Eliminar a minha conta',
-  fullName: 'Nome completo',
-  emailLabel: 'Email',
-  currentPasswordLabel: 'Palavra-passe atual',
-  newPasswordLabel: 'Nova palavra-passe',
-});
-
-const _dashPatch = applyTranslations;
-applyTranslations = function() {
-  _dashPatch();
-  safeSet('h-my-listings', t('myListings'));
-  safeSet('h-my-profile', t('myProfile'));
-  safeSet('h-full-name', t('fullName'));
-  safeSet('h-email', t('emailLabel'));
-  safeSet('h-account-type', t('accountType'));
-  safeSet('h-change-pw', t('changePassword'));
-  safeSet('h-current-pw', t('currentPasswordLabel'));
-  safeSet('h-new-pw', t('newPasswordLabel'));
-  safeSet('h-danger-zone', t('dangerZone'));
-  safeSet('h-delete-account', t('deleteMyAccount'));
-  safeSet('h-add-room', t('addRoom'));
   safeSet('tab-bookings', t('bookingRequests'));
-};
-
-Object.assign(TRANSLATIONS.en, { from: 'From', editBtn: 'Edit', deleteBtn: 'Delete', reply: 'Reply' });
-Object.assign(TRANSLATIONS.pt, { from: 'De', editBtn: 'Editar', deleteBtn: 'Eliminar', reply: 'Responder' });
-
-Object.assign(TRANSLATIONS.en, { pending: 'pending', replied: 'replied', approved: 'approved', rejected: 'rejected', cancel: 'Cancel' });
-Object.assign(TRANSLATIONS.pt, { pending: 'pendente', replied: 'respondido', approved: 'aprovado', rejected: 'rejeitado', cancel: 'Cancelar' });
-
-Object.assign(TRANSLATIONS.en, {
-  overdue: 'Overdue', dueNow: 'Due now', upcoming: 'Upcoming',
-  to: 'To', myBookings: 'My bookings', requestToBook: 'Request to book',
-  writeReview: 'Write a review', contact: 'Contact',
-  daysPastDue: 'days past the due date (1st).', payEarly: 'Pay early',
-});
-Object.assign(TRANSLATIONS.pt, {
-  overdue: 'Em atraso', dueNow: 'Vence agora', upcoming: 'Próximo',
-  to: 'Para', myBookings: 'As minhas reservas', requestToBook: 'Solicitar reserva',
-  writeReview: 'Escrever uma avaliação', contact: 'Contactar',
-  daysPastDue: 'dias após a data de vencimento (dia 1).', payEarly: 'Pagar antecipadamente',
-});
-
-const _savedPatch = applyTranslations;
-applyTranslations = function() {
-  _savedPatch();
-  safeSet('h-saved-rooms', t('saved'));
-  safeSet('h-my-rental', t('myRental'));
-  safeSet('h-my-bookings', t('myBookings'));
-  safeSet('h-my-enquiries', t('myEnquiries'));
+  safeSet('h-add-room', t('addRoom'));
+  safeSet('login-btn', t('signIn'));
+  safeSet('register-btn', t('createAccount'));
+  safeSet('profile-btn', t('saveChanges'));
 };
